@@ -1,3 +1,6 @@
+import streamlit as st
+import requests
+
 st.markdown("### 🌐 Company Name → Domain Resolver")
 company = st.text_input("Enter company name to find domain:")
 if st.button("Find Domain"):
