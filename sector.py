@@ -6,51 +6,66 @@ import re
 # Initialize Cohere Chat model with your API key
 co = cohere.Client("sNIAP0wwbfOagyZr75up0a6tVejuZ6ONH0ODCsOa")
 
-# Sector-to-service mapping
+# Sector-to-service mapping with compliance and regulator info
 SECTOR_DETAILS = {
     "Critical Infrastructure (CII)": {
         "key_services": ["Cyber Risk Assessment (IT/OT)", "Tabletop Exercise (TTX)", "CIRP & Playbook"],
         "secondary_opportunities": ["Gap Assessment", "BCP Alignment"],
-        "iso27001_expected": True
+        "iso27001_expected": True,
+        "regulators": ["NCSA"],
+        "compliance_drivers": ["Cybersecurity Act B.E. 2562", "ISO/IEC 27001"]
     },
     "Banking / Finance / Insurance (BFSI)": {
         "key_services": ["PDPA Consult", "Pentest", "IRP & Playbook"],
         "secondary_opportunities": ["Source Code Scan", "Awareness Training"],
-        "iso27001_expected": True
+        "iso27001_expected": True,
+        "regulators": ["BOT", "OIC"],
+        "compliance_drivers": ["Bank of Thailand Cyber Resilience Standards", "OIC Guidelines on Data Protection", "PDPA", "ISO/IEC 27001"]
     },
     "Healthcare": {
         "key_services": ["PDPA Consult", "IRP & TTX"],
         "secondary_opportunities": ["Phishing Simulation", "Awareness Training"],
-        "iso27001_expected": False
+        "iso27001_expected": False,
+        "regulators": ["MOPH", "PDPC"],
+        "compliance_drivers": ["PDPA", "National Health Act B.E. 2550"]
     },
     "Government / SOE": {
         "key_services": ["TTX", "IRP", "Cyber Risk Assessment"],
         "secondary_opportunities": ["Gap Assessment", "อว3/อช3 Consult"],
-        "iso27001_expected": False
+        "iso27001_expected": False,
+        "regulators": ["ETDA", "NCSA"],
+        "compliance_drivers": ["Cybersecurity Act B.E. 2562", "Official Information Act B.E. 2540"]
     },
     "Telco / ISP": {
         "key_services": ["Zero Trust Readiness", "CIRP"],
         "secondary_opportunities": ["Gap Assessment", "Managed CSOC"],
-        "iso27001_expected": True
+        "iso27001_expected": True,
+        "regulators": ["NBTC", "NCSA"],
+        "compliance_drivers": ["NBTC Privacy Requirements", "Cybersecurity Act B.E. 2562"]
     },
     "Software / Tech / SaaS": {
         "key_services": ["Secure SDLC Gap Assessment", "Source Code Scan", "Pentest"],
         "secondary_opportunities": ["Awareness Training", "CI/CD Security"],
-        "iso27001_expected": True
+        "iso27001_expected": True,
+        "regulators": ["PDPC", "NCSA"],
+        "compliance_drivers": ["PDPA", "Secure SDLC Best Practices"]
     },
     "Retail / SME / Logistics": {
         "key_services": ["VA Scan", "PDPA Consult"],
         "secondary_opportunities": ["Awareness Training", "Phishing Simulation"],
-        "iso27001_expected": False
+        "iso27001_expected": False,
+        "regulators": ["PDPC"],
+        "compliance_drivers": ["PDPA", "Business Continuity Planning"]
     },
     "Manufacturing / OT-heavy": {
         "key_services": ["Cyber Risk Assessment (IT/OT)", "CIRP"],
         "secondary_opportunities": ["TTX", "Backup/Restore Drill"],
-        "iso27001_expected": False
+        "iso27001_expected": False,
+        "regulators": ["NCSA"],
+        "compliance_drivers": ["Cybersecurity Act B.E. 2562", "Supply Chain Risk Framework"]
     }
 }
 
-# Chat prompt logic
 SECTOR_LABELS = list(SECTOR_DETAILS.keys())
 
 PROMPT_INSTRUCTION = f"""
@@ -106,18 +121,24 @@ if company_input:
                 st.markdown("### 💡 Secondary Opportunities")
                 for opt in details["secondary_opportunities"]:
                     st.markdown(f"- {opt}")
+                st.markdown("### 📋 Compliance Drivers")
+                for law in details.get("compliance_drivers", []):
+                    st.markdown(f"- {law}")
+                st.markdown("### 🏩 Sector Regulators")
+                for reg in details.get("regulators", []):
+                    st.markdown(f"- {reg}")
                 st.markdown("### 📊 ISO 27001 Readiness")
                 if details["iso27001_expected"]:
                     st.markdown("✅ Likely to be ISO 27001 compliant or in-progress")
                 else:
                     st.markdown("⚠️ May lack ISO 27001; consider IT maturity uplift advisory")
 
-                # ---- ISO 27001 Transparency Check via Cohere ----
-                st.markdown("### 🧠 ISO 27001 Public Evidence Check (via AI)")
+                # ISO 27001 AI Check
+                st.markdown("### 🧐 ISO 27001 Public Evidence Check (via AI)")
                 st.info("Asking Cohere AI: *Does this organization have ISO 27001 certification based on public data?*")
 
                 iso_check_prompt = f"""
-Check if the organization named "{company_input}" is ISO/IEC 27001 certified.
+Check if the organization named \"{company_input}\" is ISO/IEC 27001 certified.
 
 Only use publicly known information, such as:
 - Official announcements
@@ -140,8 +161,10 @@ Respond in a short, objective, non-assumptive paragraph.
                     st.caption("💡 This is AI-generated text. Please verify or decide manually.")
                 except Exception as e:
                     st.warning(f"❗ Could not fetch ISO 27001 info: {e}")
+
             else:
                 st.warning("❗ Sector returned by AI is not mapped in your catalog.")
+
         except Exception as e:
             st.error(f"❌ Could not parse AI result: {e}")
     else:
