@@ -113,27 +113,42 @@ if company_input:
             if sector in SECTOR_DETAILS:
                 details = SECTOR_DETAILS[sector]
 
-                st.markdown(f"### 🏷️ Sector: **{sector}**")
-                st.markdown(f"📌 **Reason:** {reason}")
-                st.markdown("### ✅ Key Services")
-                for svc in details["key_services"]:
-                    st.markdown(f"- {svc}")
-                st.markdown("### 💡 Secondary Opportunities")
-                for opt in details["secondary_opportunities"]:
-                    st.markdown(f"- {opt}")
-                st.markdown("### 📋 Compliance Drivers")
-                for law in details.get("compliance_drivers", []):
-                    st.markdown(f"- {law}")
-                st.markdown("### 🏩 Sector Regulators")
-                for reg in details.get("regulators", []):
-                    st.markdown(f"- {reg}")
+                st.markdown("## 🌟 Sector Summary")
+                st.markdown(f"**🏷️ Sector:** `{sector}`")
+                st.markdown(f"**📌 Reason:** {reason}")
+
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown("### ✅ Key Services")
+                    for svc in details["key_services"]:
+                        st.markdown(f"- {svc}")
+
+                with col2:
+                    st.markdown("### 💡 Secondary Opportunities")
+                    for opt in details["secondary_opportunities"]:
+                        st.markdown(f"- {opt}")
+
+                st.markdown("---")
+
+                col3, col4 = st.columns(2)
+                with col3:
+                    st.markdown("### 📋 Compliance Drivers")
+                    for law in details.get("compliance_drivers", []):
+                        st.markdown(f"- {law}")
+
+                with col4:
+                    st.markdown("### 🏩 Sector Regulators")
+                    for reg in details.get("regulators", []):
+                        st.markdown(f"- {reg}")
+
+                st.markdown("---")
                 st.markdown("### 📊 ISO 27001 Readiness")
                 if details["iso27001_expected"]:
-                    st.markdown("✅ Likely to be ISO 27001 compliant or in-progress")
+                    st.success("✅ Likely to be ISO 27001 compliant or in-progress")
                 else:
-                    st.markdown("⚠️ May lack ISO 27001; consider IT maturity uplift advisory")
+                    st.warning("⚠️ May lack ISO 27001; consider IT maturity uplift advisory")
 
-                # ISO 27001 AI Check
+                st.markdown("---")
                 st.markdown("### 🧐 ISO 27001 Public Evidence Check (via AI)")
                 st.info("Asking Cohere AI: *Does this organization have ISO 27001 certification based on public data?*")
 
