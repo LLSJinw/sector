@@ -167,6 +167,13 @@ if company_input:
                 else:
                     st.markdown("⚠️ May lack ISO 27001; consider IT maturity uplift advisory")
 # ---- ISO 27001 Transparency Check via Cohere ----
+st.markdown("### 📊 ISO 27001 Readiness")
+if details["iso27001_expected"]:
+    st.markdown("✅ Likely to be ISO 27001 compliant or in-progress")
+else:
+    st.markdown("⚠️ May lack ISO 27001; consider IT maturity uplift advisory")
+
+# ---- ISO 27001 Transparency Check via Cohere ----
 st.markdown("### 🧠 ISO 27001 Public Evidence Check (via AI)")
 st.info("Asking Cohere AI: *Does this organization have ISO 27001 certification based on public data?*")
 
@@ -195,7 +202,6 @@ try:
 except Exception as e:
     st.warning(f"❗ Could not fetch ISO 27001 info: {e}")
 
-            
             else:
                 st.warning("❗ Sector returned by AI is not mapped in your catalog.")
         except Exception as e:
