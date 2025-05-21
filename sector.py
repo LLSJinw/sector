@@ -166,6 +166,36 @@ if company_input:
                     st.markdown("✅ Likely to be ISO 27001 compliant or in-progress")
                 else:
                     st.markdown("⚠️ May lack ISO 27001; consider IT maturity uplift advisory")
+# ---- ISO 27001 Transparency Check via Cohere ----
+st.markdown("### 🧠 ISO 27001 Public Evidence Check (via AI)")
+st.info("Asking Cohere AI: *Does this organization have ISO 27001 certification based on public data?*")
+
+iso_check_prompt = f"""
+Check if the organization named "{company_input}" is ISO/IEC 27001 certified.
+
+Only use publicly known information, such as:
+- Official announcements
+- Company press releases
+- References on their website
+- Known certifications by registrars
+
+If there's no information, say so clearly.
+Respond in a short, objective, non-assumptive paragraph.
+"""
+
+try:
+    iso_response = co.chat(
+        model="command-r-plus",
+        message=iso_check_prompt,
+        temperature=0.3
+    )
+    iso_text = iso_response.text.strip()
+    st.markdown(f"> 📜 **Cohere says:** {iso_text}")
+    st.caption("💡 This is AI-generated text. Please verify or decide manually.")
+except Exception as e:
+    st.warning(f"❗ Could not fetch ISO 27001 info: {e}")
+
+            
             else:
                 st.warning("❗ Sector returned by AI is not mapped in your catalog.")
         except Exception as e:
