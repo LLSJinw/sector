@@ -1,7 +1,6 @@
 import streamlit as st
 import cohere
 
-
 # Initialize Cohere Chat model with your API key
 co = cohere.Client("sNIAP0wwbfOagyZr75up0a6tVejuZ6ONH0ODCsOa")
 
@@ -140,36 +139,36 @@ if company_input:
         st.success("✅ Sector Classification Result")
         st.code(result, language="json")
 
-        # Try to extract sector name
-    import json
-import re
+        import json
+        import re
 
-try:
-    # Clean triple backticks and extra whitespace
-    cleaned = re.sub(r"```json|```", "", result).strip()
+        try:
+            # Clean triple backticks and extra whitespace
+            cleaned = re.sub(r"```json|```", "", result).strip()
 
-    parsed = json.loads(cleaned)
-    sector = parsed.get("sector", "").strip()
-    reason = parsed.get("reason", "")
+            parsed = json.loads(cleaned)
+            sector = parsed.get("sector", "").strip()
+            reason = parsed.get("reason", "")
 
-    if sector in SECTOR_DETAILS:
-        details = SECTOR_DETAILS[sector]
+            if sector in SECTOR_DETAILS:
+                details = SECTOR_DETAILS[sector]
 
-        st.markdown(f"### 🏷️ Sector: **{sector}**")
-        st.markdown(f"📌 **Reason:** {reason}")
-        st.markdown("### ✅ Key Services")
-        for svc in details["key_services"]:
-            st.markdown(f"- {svc}")
-        st.markdown("### 💡 Secondary Opportunities")
-        for opt in details["secondary_opportunities"]:
-            st.markdown(f"- {opt}")
-        st.markdown("### 📊 ISO 27001 Readiness")
-        if details["iso27001_expected"]:
-            st.markdown("✅ Likely to be ISO 27001 compliant or in-progress")
-        else:
-            st.markdown("⚠️ May lack ISO 27001; consider IT maturity uplift advisory")
+                st.markdown(f"### 🏷️ Sector: **{sector}**")
+                st.markdown(f"📌 **Reason:** {reason}")
+                st.markdown("### ✅ Key Services")
+                for svc in details["key_services"]:
+                    st.markdown(f"- {svc}")
+                st.markdown("### 💡 Secondary Opportunities")
+                for opt in details["secondary_opportunities"]:
+                    st.markdown(f"- {opt}")
+                st.markdown("### 📊 ISO 27001 Readiness")
+                if details["iso27001_expected"]:
+                    st.markdown("✅ Likely to be ISO 27001 compliant or in-progress")
+                else:
+                    st.markdown("⚠️ May lack ISO 27001; consider IT maturity uplift advisory")
+            else:
+                st.warning("❗ Sector returned by AI is not mapped in your catalog.")
+        except Exception as e:
+            st.error(f"❌ Could not parse AI result: {e}")
     else:
-        st.warning("❗ Sector returned by AI is not mapped in your catalog.")
-except Exception as e:
-    st.error(f"❌ Could not parse AI result: {e}")
-
+        st.error(f"❌ Failed to get classification: {result[1]}")
