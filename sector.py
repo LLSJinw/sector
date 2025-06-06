@@ -48,8 +48,6 @@ NCSA_REG = [
     "สำนักงานพัฒนารัฐบาลดิจิทัล (องค์การมหาชน)", "สำนักงานสภาความมั่นคงแห่งชาติ"
 ]
 NCSA_GOV = [
-    # This list is very long, so it is truncated here for readability in the code block.
-    # The full list is used in the logic.
     "กรมการกงสุล", "กรมการขนส่งทางบก", "กรมการข้าว", "มหาวิทยาลัยเกษตรศาสตร์", "กระทรวงศึกษาธิการ",
 ] + [
     "กรมการค้าต่างประเทศ","กรมการค้าภายใน","กรมการจัดหางาน","กรมการท่องเที่ยว","กรมการเปลี่ยนแปลงสภาพภูมิอากาศและสิ่งแวดล้อม",
@@ -108,7 +106,7 @@ NCSA_GOV = [
     "สถาบันเทคโนโลยีป้องกันประเทศ","สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง","สถาบันนิติวิทยาศาสตร์",
     "สถาบันบริหารจัดการธนาคารที่ดิน (องค์การมหาชน)","สถาบันบัณฑิตพัฒนศิลป์","สถาบันพระปกเกล้า",
     "สถาบันพัฒนาองค์กรชุมชน (องค์การมหาชน)","สถาบันเพื่อการยุติธรรมแห่งประเทศไทย","สถาบันมาตรวิทยาแห่งชาติ",
-    "สถาบันระหว่างประเทศเพื่อการค้าและการพัฒนา (องค์การมหาชน)","สถาบันรับรองคุณภาพสถานพยาบาล (องค์การมหาชน)","สถาบันวัคซีนแห่งชาติ",
+    "สถาบันระหว่างประเทศเพื่อการค้าและการพัฒนา (องค์การมหาชน)","สถาบันรับรองคุณภาพสถานพยาบาล (องค์การมhaชน)","สถาบันวัคซีนแห่งชาติ",
     "สถาบันวิจัยดาราศาสตร์แห่งชาติ (องค์การมหาชน)","สถาบันวิจัยระบบสาธารณสุข","สถาบันวิจัยและพัฒนาเทคโนโลยีระบบราง (องค์การมหาชน)",
     "สถาบันวิจัยและพัฒนาพื้นที่สูง (องค์การมหาชน)","สถาบันวิจัยและพัฒนาอัญมณีและเครื่องประดับแห่งชาติ (องค์การมหาชน)",
     "สถาบันวิจัยวิทยาศาสตร์และเทคโนโลยีแห่งประเทศไทย","สถาบันวิจัยแสงซินโครตรอน (องค์การมหาชน)","สถาบันส่งเสริมการบริหารกิจการบ้านเมืองที่ดี",
@@ -152,8 +150,7 @@ NCSA_GOV = [
 
 
 # Initialize Cohere Chat model with your API key
-# Make sure to replace "YOUR_API_KEY" with your actual Cohere API key
-co = cohere.Client("sNIAP0wwbfOagyZr75up0a6tVejuZ6ONH0ODCsOa") 
+co = cohere.Client(st.secrets["COHERE_API_KEY"])
 
 # Sector-to-service mapping with compliance and regulator info
 SECTOR_DETAILS = {
@@ -225,11 +222,15 @@ SECTOR_DETAILS = {
 SECTOR_LABELS = list(SECTOR_DETAILS.keys())
 
 PROMPT_INSTRUCTION = f"""
-You're a sector classification assistant trained to categorize companies into one of the following sectors:
+You are a sector classification assistant. Your task is to categorize a company into one of the following sectors based on its name and likely business activities:
 {', '.join(SECTOR_LABELS)}
-Given a company name, return the sector only, and a brief reason in JSON format.
-Example output:
-{{"sector": "Healthcare", "reason": "The company operates a hospital and healthtech systems."}}
+
+Provide your answer in a JSON format with two keys: "sector" and "reason". The "reason" should be a brief explanation for your choice.
+
+Example:
+Company: "Bangkok Hospital"
+Output:
+{{"sector": "Healthcare", "reason": "The company name indicates it is a hospital, which falls under the healthcare sector."}}
 """
 
 def classify_statically(entity_name):
@@ -243,7 +244,6 @@ def classify_statically(entity_name):
         str: The classified sector name (e.g., "Critical Infrastructure (CII)")
              if a match is found, otherwise None.
     """
-    # Normalize the input entity name to lowercase for robust, case-insensitive matching.
     name_lower = entity_name.lower()
     
     if any(item.lower() in name_lower for item in NCSA_CII):
@@ -257,7 +257,7 @@ def classify_statically(entity_name):
 
 def classify_with_ai(company_name):
     """
-    Uses the Cohere AI model for dynamic classification if no static match is found.
+    Uses the Cohere AI model for dynamic classification.
     Args:
         company_name (str): The name of the organization to classify.
     Returns:
@@ -274,16 +274,17 @@ def classify_with_ai(company_name):
         st.error(f"Error calling Cohere AI: {e}")
         return None
 
-def display_sector_details(sector, reason):
+def display_sector_details(sector, reason, header="Sector Summary"):
     """
     Renders the details for a given sector in the Streamlit UI.
     Args:
         sector (str): The name of the classified sector.
         reason (str): The reason for the classification.
+        header (str): The title for this section.
     """
+    st.markdown(f"## 🌟 {header}")
     if sector in SECTOR_DETAILS:
         details = SECTOR_DETAILS[sector]
-        st.markdown("## 🌟 Sector Summary")
         st.markdown(f"**🏷️ Sector:** `{sector}`")
         st.markdown(f"**📌 Reason:** {reason}")
         col1, col2 = st.columns(2)
@@ -306,7 +307,30 @@ def display_sector_details(sector, reason):
             for reg in details.get("regulators", []):
                 st.markdown(f"- {reg}")
     else:
-        st.warning(f"❗ Sector '{sector}' is not defined in the details catalog.")
+        st.warning(f"❗ **Sector Not Mapped:** The sector '{sector}' from the AI is not in the details catalog. Showing raw AI reason below.")
+        st.markdown(f"**📌 AI's Reason:** {reason}")
+
+
+def process_ai_result(ai_result_raw, header="AI Classification"):
+    """Processes and displays the AI classification result."""
+    if ai_result_raw:
+        st.success("✅ AI Analysis Received")
+        st.code(ai_result_raw, language="json")
+        try:
+            cleaned_json_str = re.sub(r"```json|```", "", ai_result_raw).strip()
+            parsed_json = json.loads(cleaned_json_str)
+            ai_sector = parsed_json.get("sector", "").strip()
+            ai_reason = parsed_json.get("reason", "No reason provided by AI.")
+            
+            if ai_sector:
+                display_sector_details(ai_sector, ai_reason, header=header)
+            else:
+                st.error("❌ AI returned a response but without a sector.")
+        
+        except json.JSONDecodeError:
+            st.error(f"❌ Could not parse the AI's JSON response. Raw response was: {ai_result_raw}")
+        except Exception as e:
+            st.error(f"❌ An error occurred while processing the AI result: {e}")
 
 # --- Streamlit UI ---
 st.set_page_config(page_title="AI Sector + Service Mapper", page_icon="🧠", layout="wide")
@@ -316,34 +340,29 @@ company_input = st.text_input("🔍 Enter customer or organization name (Thai or
 
 if company_input:
     # --- Step 1: Attempt static classification ---
-    st.info("Step 1: Checking against static Thai NCSA lists...")
+    st.markdown("---")
+    st.info("**Step 1: Checking for official NCSA classification...**")
     static_sector = classify_statically(company_input)
     
     if static_sector:
-        st.success("✅ Match found in static list!")
-        display_sector_details(static_sector, "Classified based on a predefined list of Thai NCSA entities.")
+        st.success(f"**✅ Match Found!** This entity is on a predefined NCSA list.")
+        display_sector_details(static_sector, "Classified based on a predefined list of Thai NCSA entities.", header="Primary Classification (Rule-Based)")
+        
+        # --- Also get the AI's opinion for more nuance ---
+        st.markdown("---")
+        st.info("**Step 2: Getting AI-based business characterization for more detail...**")
+        with st.spinner("Analyzing business characteristics via Cohere AI..."):
+            ai_result_raw = classify_with_ai(company_input)
+        
+        if ai_result_raw:
+            process_ai_result(ai_result_raw, header="Business Characterization (AI Second Opinion)")
+
     else:
-        # --- Step 2: Fallback to dynamic AI classification ---
-        st.warning("⚠️ No match in static lists. Proceeding to Step 2: AI-based dynamic classification.")
+        # --- Fallback to AI if no static match is found ---
+        st.warning("⚠️ No match in static NCSA lists.")
+        st.info("**Proceeding to AI-based dynamic classification...**")
         with st.spinner("Classifying sector via Cohere AI..."):
             ai_result_raw = classify_with_ai(company_input)
 
         if ai_result_raw:
-            st.success("✅ AI Classification Result Received")
-            st.code(ai_result_raw, language="json")
-            try:
-                # Clean up potential markdown formatting from the AI response
-                cleaned_json_str = re.sub(r"```json|```", "", ai_result_raw).strip()
-                parsed_json = json.loads(cleaned_json_str)
-                ai_sector = parsed_json.get("sector", "").strip()
-                ai_reason = parsed_json.get("reason", "No reason provided by AI.")
-                
-                if ai_sector:
-                    display_sector_details(ai_sector, ai_reason)
-                else:
-                    st.error("❌ AI returned a response but without a sector.")
-            
-            except json.JSONDecodeError:
-                st.error(f"❌ Could not parse the AI's JSON response. Raw response was: {ai_result_raw}")
-            except Exception as e:
-                st.error(f"❌ An error occurred while processing the AI result: {e}")
+            process_ai_result(ai_result_raw, header="AI Classification")
