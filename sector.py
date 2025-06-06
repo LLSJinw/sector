@@ -150,7 +150,7 @@ NCSA_GOV = [
 
 
 # Initialize Cohere Chat model with your API key
-co = cohere.Client(st.secrets["sNIAP0wwbfOagyZr75up0a6tVejuZ6ONH0ODCsOa"])
+co = cohere.Client("sNIAP0wwbfOagyZr75up0a6tVejuZ6ONH0ODCsOa") 
 
 # Sector-to-service mapping with compliance and regulator info
 SECTOR_DETAILS = {
