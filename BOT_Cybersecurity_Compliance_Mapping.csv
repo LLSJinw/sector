@@ -1,0 +1,7 @@
+หัวข้อ BOT,รหัสหมวด BOT,ข้อกำหนด (โดยย่อ),Cybersecurity Service Mapping,ประเภทบริการ
+1. Cybersecurity Governance (การกำกับดูแล),"1.1, 1.2","จัดทำนโยบาย, กำกับดูแลโดยผู้บริหาร, จัดสรรทรัพยากร",Cybersecurity Strategy & Governance Consulting; Virtual CISO (vCISO),Mandatory
+2. Cybersecurity Risk Identification (การระบุความเสี่ยง),"2.1, 2.2, 2.3","Asset Inventory, Risk Assessment, Third-party Risk",Cybersecurity Risk Assessment; Third-Party / Vendor Risk Assessment,Mandatory
+3. Cybersecurity Risk Protection (การป้องกันความเสี่ยง),"3.1, 3.2, 3.3, 3.4","Defense-in-Depth, Access Control, Data Protection, Awareness",PDPA / Data Protection Consulting; Endpoint Detection & Response (EDR); Security Awareness Training & Phishing Simulation,Recommended
+4. Cybersecurity Risk Detection (การตรวจจับความเสี่ยง),"4.1, 4.2, 4.3","Monitoring, Log Management, Threat Intelligence",SOC as a Service; Threat Intelligence Subscription / Service,Recommended
+5. Cybersecurity Risk Response & Recovery (การตอบสนองและฟื้นคืน),"5.1, 5.2, 5.3","Incident Response Plan, BCP/DR Plan, Test at least annually",IRP Development & Retainer; BCP/DR Consulting; Tabletop Exercise (TTX) & Cyber Drill,Mandatory
+6. Information Sharing (การแบ่งปันข้อมูล),6.1,Join TB-CERT or similar; Share threats with peers/regulators,Threat Intelligence Sharing Platform Advisor,Recommended
