@@ -74,8 +74,8 @@ SECTOR_DETAILS = {
         "key_services": ["PDPA Consult", "Pentest", "IRP & Playbook"],
         "secondary_opportunities": ["Source Code Scan", "Awareness Training"],
         "iso27001_expected": True,
-        "regulators": ["ธปท. (BOT)", "คปภ. (OIC)"],
-        "compliance_drivers": ["Bank of Thailand Cyber Resilience Standards", "OIC Guidelines on Data Protection", "PDPA", "ISO/IEC 27001"]
+        "regulators": ["ธปท. (BOT)", "คปภ. (OIC)", "ก.ล.ต. (SEC)"],
+        "compliance_drivers": ["BOT/OIC/SEC Guidelines", "PDPA", "ISO/IEC 27001"]
     },
     "Healthcare": {
         "key_services": ["PDPA Consult", "IRP & TTX"],
@@ -219,22 +219,22 @@ def display_unified_recommendations(sectors):
 @st.cache_data
 def load_csv_data(file_path):
     """Loads data from a CSV file, with caching."""
+    if not os.path.exists(file_path):
+        return None # Return None if file doesn't exist, handle error in calling function
     try:
-        if os.path.exists(file_path):
-            return pd.read_csv(file_path)
-        else:
-            st.error(f"Error: The file '{file_path}' was not found.")
-            st.info(f"Please make sure the file '{file_path}' is in the same directory as the Streamlit app.")
-            return None
+        return pd.read_csv(file_path)
     except Exception as e:
         st.error(f"An error occurred while reading the CSV file '{file_path}': {e}")
         return None
 
-def display_compliance_table(df, title):
-    """Renders a DataFrame as a table with a title."""
+def display_compliance_table(df, title, file_path):
+    """Renders a DataFrame as a table with a title, or shows an error if df is None."""
     st.markdown(f"### {title}")
     if df is not None and not df.empty:
         st.dataframe(df, use_container_width=True, hide_index=True)
+    else:
+        st.warning(f"Could not load data for this section. Please ensure the file '{file_path}' exists in the application directory.")
+
 
 # --- Streamlit UI Main Logic ---
 st.set_page_config(page_title="AI Sector + Service Mapper", page_icon="🧠", layout="wide")
@@ -251,12 +251,9 @@ with search_col:
 with button_col:
     if st.button("Search / Classify", key="search_button"):
         st.session_state.org_to_classify = company_input
-        # Find suggestions based on the input
         st.session_state.suggestions = find_suggestions(company_input) if company_input else []
-        # If there's an exact match in suggestions, prioritize it for classification
         if company_input in st.session_state.suggestions:
              st.session_state.org_to_classify = company_input
-        # Rerun to update the UI based on the new state
         st.rerun()
 
 # --- Display Suggestions if any are found ---
@@ -266,7 +263,7 @@ if st.session_state.get('suggestions'):
     for org in st.session_state.suggestions:
         if st.button(org, key=org):
             st.session_state.org_to_classify = org
-            st.session_state.suggestions = []  # Clear suggestions after selection
+            st.session_state.suggestions = []
             st.rerun()
 
 # --- Run Classification and Display Results ---
@@ -310,14 +307,22 @@ if st.session_state.org_to_classify:
         
         # Conditionally display the compliance mapping tables
         st.markdown("---")
+        st.markdown("## ภาคผนวก: ข้อกำหนดเฉพาะหน่วยงานกำกับดูแล (Appendix)")
+        
         is_gov_related = any(s in ["Critical Infrastructure (CII)", "Government / SOE", "Regulator"] for s in final_sectors)
         if is_gov_related:
             df_law = load_csv_data('Cybersecurity_Law-Service_Mapping_Table.csv')
-            display_compliance_table(df_law, "📑 รายละเอียดข้อกำหนดตาม พ.ร.บ. ไซเบอร์ฯ ที่เกี่ยวข้อง")
+            display_compliance_table(df_law, "📑 รายละเอียดข้อกำหนดตาม พ.ร.บ. ไซเบอร์ฯ", 'Cybersecurity_Law-Service_Mapping_Table.csv')
 
         if "Banking / Finance / Insurance (BFSI)" in final_sectors:
             df_bot = load_csv_data('BOT_Cybersecurity_Compliance_Mapping.csv')
-            display_compliance_table(df_bot, "🏦 รายละเอียดข้อกำหนดตามแนวทางของธนาคารแห่งประเทศไทย (BOT)")
+            display_compliance_table(df_bot, "🏦 รายละเอียดข้อกำหนดตามแนวทางของธนาคารแห่งประเทศไทย (BOT)", 'BOT_Cybersecurity_Compliance_Mapping.csv')
+            
+            df_oic = load_csv_data('OIC_Cybersecurity_Service_Mapping.csv')
+            display_compliance_table(df_oic, "🛡️ รายละเอียดข้อกำหนดตามแนวทางของสำนักงาน คปภ. (OIC)", 'OIC_Cybersecurity_Service_Mapping.csv')
+            
+            df_sec = load_csv_data('SEC_Cybersecurity_Service_Mapping.csv')
+            display_compliance_table(df_sec, "📈 รายละเอียดข้อกำหนดตามแนวทางของสำนักงาน ก.ล.ต. (SEC)", 'SEC_Cybersecurity_Service_Mapping.csv')
             
     else:
         st.error("Could not determine a valid, mapped sector from any method to provide recommendations.")
