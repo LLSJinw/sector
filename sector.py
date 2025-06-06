@@ -88,7 +88,7 @@ NCSA_GOV = [
     "บริษัท อสมท จำกัด (มหาชน)","บริษัท อู่กรุงเทพ จำกัด","มหาวิทยาลัยการกีฬาแห่งชาติ","มหาวิทยาลัยกาฬสินธุ์",
     "มหาวิทยาลัยขอนแก่น","มหาวิทยาลัยเชียงใหม่","มหาวิทยาลัยทักษิณ","มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี",
     "มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ","มหาวิทยาลัยเทคโนโลยีราชมงคลกรุงเทพ","มหาวิทยาลัยเทคโนโลยีราชมงคลตะวันออก",
-    "มหาวิทยาลัยเทคโนโลยีราชมงคลธัญบุรี","มหาวิทยาลัยเทคโนโลยีราชมงคลพระนคร","มหาวิทยาลัยเทคโนโลยีราชมgคลรัตนโกสินทร์",
+    "มหาวิทยาลัยเทคโนโลยีราชมงคลธัญบุรี","มหาวิทยาลัยเทคโนโลยีราชมงคลพระนคร","มหาวิทยาลัยเทคโนโลยีราชมงคลรัตนโกสินทร์",
     "มหาวิทยาลัยเทคโนโลยีราชมงคลล้านนา","มหาวิทยาลัยเทคโนโลยีราชมงคลศรีวิชัย","มหาวิทยาลัยเทคโนโลยีราชมงคลสุวรรณภูมิ",
     "มหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน","มหาวิทยาลัยเทคโนโลยีสุรนารี","มหาวิทยาลัยธรรมศาสตร์","มหาวิทยาลัยนครพนม",
     "มหาวิทยาลัยนราธิวาสราชนครินทร์","มหาวิทยาลัยนเรศวร","มหาวิทยาลัยนวมินทราธิราช","มหาวิทยาลัยบูรพา","มหาวิทยาลัยพะเยา",
@@ -165,7 +165,7 @@ SECTOR_DETAILS = {
         "key_services": ["Cyber Risk Assessment (IT/OT)", "Tabletop Exercise (TTX)", "CIRP & Playbook"],
         "secondary_opportunities": ["Gap Assessment", "BCP Alignment"],
         "iso27001_expected": True,
-        "regulators": ["NCSA"],
+        "regulators": ["สกมช. (NCSA)"],
         "compliance_drivers": ["Cybersecurity Act B.E. 2562", "ISO/IEC 27001"]
     },
     "Regulator": {
@@ -179,49 +179,49 @@ SECTOR_DETAILS = {
         "key_services": ["TTX", "IRP", "Cyber Risk Assessment"],
         "secondary_opportunities": ["Gap Assessment", "อว3/อช3 Consult"],
         "iso27001_expected": False,
-        "regulators": ["ETDA", "NCSA"],
+        "regulators": ["สพธอ. (ETDA)", "สกมช. (NCSA)"],
         "compliance_drivers": ["Cybersecurity Act B.E. 2562", "Official Information Act B.E. 2540"]
     },
     "Banking / Finance / Insurance (BFSI)": {
         "key_services": ["PDPA Consult", "Pentest", "IRP & Playbook"],
         "secondary_opportunities": ["Source Code Scan", "Awareness Training"],
         "iso27001_expected": True,
-        "regulators": ["BOT", "OIC"],
+        "regulators": ["ธปท. (BOT)", "คปภ. (OIC)"],
         "compliance_drivers": ["Bank of Thailand Cyber Resilience Standards", "OIC Guidelines on Data Protection", "PDPA", "ISO/IEC 27001"]
     },
     "Healthcare": {
         "key_services": ["PDPA Consult", "IRP & TTX"],
         "secondary_opportunities": ["Phishing Simulation", "Awareness Training"],
         "iso27001_expected": False,
-        "regulators": ["MOPH", "PDPC"],
+        "regulators": ["กระทรวงสาธารณสุข (MOPH)", "สคส. (PDPC)"],
         "compliance_drivers": ["PDPA", "National Health Act B.E. 2550"]
     },
     "Telco / ISP": {
         "key_services": ["Zero Trust Readiness", "CIRP"],
         "secondary_opportunities": ["Gap Assessment", "Managed CSOC"],
         "iso27001_expected": True,
-        "regulators": ["NBTC", "NCSA"],
+        "regulators": ["กสทช. (NBTC)", "สกมช. (NCSA)"],
         "compliance_drivers": ["NBTC Privacy Requirements", "Cybersecurity Act B.E. 2562"]
     },
     "Software / Tech / SaaS": {
         "key_services": ["Secure SDLC Gap Assessment", "Source Code Scan", "Pentest"],
         "secondary_opportunities": ["Awareness Training", "CI/CD Security"],
         "iso27001_expected": True,
-        "regulators": ["PDPC", "NCSA"],
+        "regulators": ["สคส. (PDPC)", "สกมช. (NCSA)"],
         "compliance_drivers": ["PDPA", "Secure SDLC Best Practices"]
     },
     "Retail / SME / Logistics": {
         "key_services": ["VA Scan", "PDPA Consult"],
         "secondary_opportunities": ["Awareness Training", "Phishing Simulation"],
         "iso27001_expected": False,
-        "regulators": ["PDPC"],
+        "regulators": ["สคส. (PDPC)"],
         "compliance_drivers": ["PDPA", "Business Continuity Planning"]
     },
     "Manufacturing / OT-heavy": {
         "key_services": ["Cyber Risk Assessment (IT/OT)", "CIRP"],
         "secondary_opportunities": ["TTX", "Backup/Restore Drill"],
         "iso27001_expected": False,
-        "regulators": ["NCSA"],
+        "regulators": ["สกมช. (NCSA)"],
         "compliance_drivers": ["Cybersecurity Act B.E. 2562", "Supply Chain Risk Framework"]
     }
 }
