@@ -3,6 +3,7 @@ import streamlit as st
 import cohere
 import json
 import re
+import pandas as pd
 
 # Use a secrets.toml file to store your API key
 # Example secrets.toml:
@@ -131,29 +132,29 @@ SECTOR_DETAILS = {
 # New data structure for the compliance mapping table
 COMPLIANCE_MAPPING_DATA = [
     {
-        "section": "มาตรา 13(5)",
-        "topic": "หน่วยงาน CII ต้องกำหนดมาตรฐานที่เหมาะสมเพื่อรับมือภัยคุกคามไซเบอร์",
-        "services": ["🔹 NIST CSF Gap Assessment", "🔹 Cybersecurity Maturity Assessment"]
+        "มาตรา (Section)": "มาตรา 13(5)",
+        "หัวข้อกฎหมาย (โดยย่อ)": "หน่วยงาน CII ต้องกำหนดมาตรฐานที่เหมาะสมเพื่อรับมือภัยคุกคามไซเบอร์",
+        "Cybersecurity Service Mapping": "🔹 NIST CSF Gap Assessment\n🔹 Cybersecurity Maturity Assessment"
     },
     {
-        "section": "มาตรา 43, 44, 45",
-        "topic": "หน่วยงานต้องมีนโยบาย มาตรฐาน และแนวทางการป้องกันภัยไซเบอร์ตามแผนของชาติ",
-        "services": ["🔹 NIST CSF Gap Assessment (Policy & Controls)", "🔹 Baseline Readiness Only"]
+        "มาตรา (Section)": "มาตรา 43, 44, 45",
+        "หัวข้อกฎหมาย (โดยย่อ)": "หน่วยงานต้องมีนโยบาย มาตรฐาน และแนวทางการป้องกันภัยไซเบอร์ตามแผนของชาติ",
+        "Cybersecurity Service Mapping": "🔹 NIST CSF Gap Assessment (Policy & Controls)\n🔹 Baseline Readiness Only"
     },
     {
-        "section": "มาตรา 54",
-        "topic": "ประเมินความเสี่ยงและตรวจสอบระบบความมั่นคงไซเบอร์อย่างน้อยปีละครั้ง โดยผู้ประเมินภายใน/ภายนอก",
-        "services": ["🔹 Cyber Risk Assessment (IT/OT)"]
+        "มาตรา (Section)": "มาตรา 54",
+        "หัวข้อกฎหมาย (โดยย่อ)": "ประเมินความเสี่ยงและตรวจสอบระบบความมั่นคงไซเบอร์อย่างน้อยปีละครั้ง โดยผู้ประเมินภายใน/ภายนอก",
+        "Cybersecurity Service Mapping": "🔹 Cyber Risk Assessment (IT/OT)"
     },
     {
-        "section": "มาตรา 58",
-        "topic": "หน่วยงานต้องรับมือกับภัยคุกคามไซเบอร์ โดยต้องประเมินสถานการณ์ ตรวจสอบ ป้องกัน แจ้งเหตุ ฯลฯ",
-        "services": ["🔹 Cyber Incident Response Plan (IRP)"]
+        "มาตรา (Section)": "มาตรา 58",
+        "หัวข้อกฎหมาย (โดยย่อ)": "หน่วยงานต้องรับมือกับภัยคุกคามไซเบอร์ โดยต้องประเมินสถานการณ์ ตรวจสอบ ป้องกัน แจ้งเหตุ ฯลฯ",
+        "Cybersecurity Service Mapping": "🔹 Cyber Incident Response Plan (IRP)"
     },
     {
-        "section": "มาตรา 59",
-        "topic": "สนับสนุนหน่วยงานอื่นในการรับมือภัยไซเบอร์ และแจ้งเตือนเมื่อพบภัย",
-        "services": ["🔹 CIRP Tabletop Exercise (TTX)"]
+        "มาตรา (Section)": "มาตรา 59",
+        "หัวข้อกฎหมาย (โดยย่อ)": "สนับสนุนหน่วยงานอื่นในการรับมือภัยไซเบอร์ และแจ้งเตือนเมื่อพบภัย",
+        "Cybersecurity Service Mapping": "🔹 CIRP Tabletop Exercise (TTX)"
     }
 ]
 
@@ -252,20 +253,14 @@ def display_unified_recommendations(sectors):
                 st.markdown(f"- {reg}")
 
 def display_compliance_mapping_table():
-    """Renders the compliance mapping data as a markdown table."""
+    """Renders the compliance mapping data using st.dataframe for better formatting."""
     st.markdown("### 📑 รายละเอียดข้อกำหนดตาม พ.ร.บ. ไซเบอร์ฯ ที่เกี่ยวข้อง")
     
-    # Manually create the table header
-    st.markdown("""
-    | มาตรา (Section) | หัวข้อกฎหมาย (โดยย่อ) | Cybersecurity Service Mapping |
-    | :--- | :--- | :--- |
-    """)
-
-    # Create table rows from the data
-    for item in COMPLIANCE_MAPPING_DATA:
-        # Join services with a line break for better display in the table cell
-        services_list = "<br>".join(item["services"])
-        st.markdown(f"| **{item['section']}** | {item['topic']} | {services_list} |", unsafe_allow_html=True)
+    # Convert the list of dictionaries to a Pandas DataFrame
+    df = pd.DataFrame(COMPLIANCE_MAPPING_DATA)
+    
+    # Display the DataFrame using Streamlit's dedicated component
+    st.dataframe(df, use_container_width=True, hide_index=True)
 
 
 # --- Streamlit UI Main Logic ---
