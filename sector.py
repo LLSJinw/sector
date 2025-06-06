@@ -47,6 +47,12 @@ NCSA_GOV = [
 ALL_STATIC_ORGS = sorted(list(set(NCSA_CII + NCSA_REG + NCSA_GOV)))
 
 
+# --- Keyword lists for BFSI sub-sector refinement ---
+BANKING_KEYWORDS = ["ธนาคาร", "bank", "tmb", "scb", "kbank", "สินเชื่อ", "ttb"]
+INSURANCE_KEYWORDS = ["ประกัน", "insurance", "life", "เมืองไทย", "กรุงเทพประกันชีวิต", "axa", "aia", "อินชัวรันส์"]
+SEC_KEYWORDS = ["หลักทรัพย์", "securities", "บลจ.", "ตลาดหลักทรัพย์", "asset management", "exchange"]
+
+
 # Sector-to-service mapping with compliance and regulator info
 SECTOR_DETAILS = {
     "Critical Infrastructure (CII)": {
@@ -220,7 +226,7 @@ def display_unified_recommendations(sectors):
 def load_csv_data(file_path):
     """Loads data from a CSV file, with caching."""
     if not os.path.exists(file_path):
-        return None # Return None if file doesn't exist, handle error in calling function
+        return None 
     try:
         return pd.read_csv(file_path)
     except Exception as e:
@@ -243,7 +249,6 @@ st.title("🧠 AI Sector Classifier + Service Recommendations")
 if 'org_to_classify' not in st.session_state:
     st.session_state.org_to_classify = None
 
-# --- UI for Search and Suggestions ---
 search_col, button_col = st.columns([4, 1])
 with search_col:
     company_input = st.text_input("🔍 Enter a keyword to search, or a full name to classify:", key="company_input", label_visibility="collapsed", placeholder="Enter a keyword to search, or a full name to classify...")
@@ -256,7 +261,6 @@ with button_col:
              st.session_state.org_to_classify = company_input
         st.rerun()
 
-# --- Display Suggestions if any are found ---
 if st.session_state.get('suggestions'):
     st.markdown("### 📝 Suggestions from Static Lists")
     st.caption("Click a name to classify it, or classify your original text below.")
@@ -266,7 +270,6 @@ if st.session_state.get('suggestions'):
             st.session_state.suggestions = []
             st.rerun()
 
-# --- Run Classification and Display Results ---
 if st.session_state.org_to_classify:
     st.markdown("---")
     st.markdown(f"## 📊 Classification Analysis for: **{st.session_state.org_to_classify}**")
@@ -305,7 +308,6 @@ if st.session_state.org_to_classify:
     if final_sectors:
         display_unified_recommendations(list(final_sectors))
         
-        # Conditionally display the compliance mapping tables
         st.markdown("---")
         st.markdown("## ภาคผนวก: ข้อกำหนดเฉพาะหน่วยงานกำกับดูแล (Appendix)")
         
@@ -315,14 +317,23 @@ if st.session_state.org_to_classify:
             display_compliance_table(df_law, "📑 รายละเอียดข้อกำหนดตาม พ.ร.บ. ไซเบอร์ฯ", 'Cybersecurity_Law-Service_Mapping_Table.csv')
 
         if "Banking / Finance / Insurance (BFSI)" in final_sectors:
-            df_bot = load_csv_data('BOT_Cybersecurity_Compliance_Mapping.csv')
-            display_compliance_table(df_bot, "🏦 รายละเอียดข้อกำหนดตามแนวทางของธนาคารแห่งประเทศไทย (BOT)", 'BOT_Cybersecurity_Compliance_Mapping.csv')
+            org_name_lower = st.session_state.org_to_classify.lower()
             
-            df_oic = load_csv_data('OIC_Cybersecurity_Service_Mapping.csv')
-            display_compliance_table(df_oic, "🛡️ รายละเอียดข้อกำหนดตามแนวทางของสำนักงาน คปภ. (OIC)", 'OIC_Cybersecurity_Service_Mapping.csv')
+            # Refined check for BOT
+            if any(keyword in org_name_lower for keyword in BANKING_KEYWORDS):
+                df_bot = load_csv_data('BOT_Cybersecurity_Compliance_Mapping.csv')
+                display_compliance_table(df_bot, "🏦 รายละเอียดข้อกำหนดตามแนวทางของธนาคารแห่งประเทศไทย (BOT)", 'BOT_Cybersecurity_Compliance_Mapping.csv')
             
-            df_sec = load_csv_data('SEC_Cybersecurity_Service_Mapping.csv')
-            display_compliance_table(df_sec, "📈 รายละเอียดข้อกำหนดตามแนวทางของสำนักงาน ก.ล.ต. (SEC)", 'SEC_Cybersecurity_Service_Mapping.csv')
+            # Refined check for OIC
+            if any(keyword in org_name_lower for keyword in INSURANCE_KEYWORDS):
+                df_oic = load_csv_data('OIC_Cybersecurity_Service_Mapping.csv')
+                display_compliance_table(df_oic, "🛡️ รายละเอียดข้อกำหนดตามแนวทางของสำนักงาน คปภ. (OIC)", 'OIC_Cybersecurity_Service_Mapping.csv')
+            
+            # Refined check for SEC
+            if any(keyword in org_name_lower for keyword in SEC_KEYWORDS):
+                df_sec = load_csv_data('SEC_Cybersecurity_Service_Mapping.csv')
+                display_compliance_table(df_sec, "📈 รายละเอียดข้อกำหนดตามแนวทางของสำนักงาน ก.ล.ต. (SEC)", 'SEC_Cybersecurity_Service_Mapping.csv')
             
     else:
         st.error("Could not determine a valid, mapped sector from any method to provide recommendations.")
+
