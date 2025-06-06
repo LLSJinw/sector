@@ -216,28 +216,25 @@ def display_unified_recommendations(sectors):
             for reg in sorted(list(regulators)):
                 st.markdown(f"- {reg}")
 
-
-def display_compliance_mapping_table():
-    """Renders the compliance mapping data from the CSV file."""
-    st.markdown("### 📑 รายละเอียดข้อกำหนดตาม พ.ร.บ. ไซเบอร์ฯ ที่เกี่ยวข้อง")
-    
-    # Define the path to the CSV file
-    file_path = 'Cybersecurity_Law-Service_Mapping_Table.csv'
-
+@st.cache_data
+def load_csv_data(file_path):
+    """Loads data from a CSV file, with caching."""
     try:
-        # Check if the file exists before trying to read it
         if os.path.exists(file_path):
-            df = pd.read_csv(file_path)
-            # To handle multiline text within cells better, we can apply a style
-            # This is a bit advanced and might not be fully supported in all st versions
-            # For now, st.dataframe handles it reasonably well.
-            st.dataframe(df, use_container_width=True, hide_index=True)
+            return pd.read_csv(file_path)
         else:
             st.error(f"Error: The file '{file_path}' was not found.")
-            st.info("Please make sure the CSV file is in the same directory as the Streamlit app.")
-
+            st.info(f"Please make sure the file '{file_path}' is in the same directory as the Streamlit app.")
+            return None
     except Exception as e:
-        st.error(f"An error occurred while reading or displaying the CSV file: {e}")
+        st.error(f"An error occurred while reading the CSV file '{file_path}': {e}")
+        return None
+
+def display_compliance_table(df, title):
+    """Renders a DataFrame as a table with a title."""
+    st.markdown(f"### {title}")
+    if df is not None and not df.empty:
+        st.dataframe(df, use_container_width=True, hide_index=True)
 
 # --- Streamlit UI Main Logic ---
 st.set_page_config(page_title="AI Sector + Service Mapper", page_icon="🧠", layout="wide")
@@ -311,11 +308,16 @@ if st.session_state.org_to_classify:
     if final_sectors:
         display_unified_recommendations(list(final_sectors))
         
+        # Conditionally display the compliance mapping tables
+        st.markdown("---")
         is_gov_related = any(s in ["Critical Infrastructure (CII)", "Government / SOE", "Regulator"] for s in final_sectors)
         if is_gov_related:
-            st.markdown("---")
-            display_compliance_mapping_table()
+            df_law = load_csv_data('Cybersecurity_Law-Service_Mapping_Table.csv')
+            display_compliance_table(df_law, "📑 รายละเอียดข้อกำหนดตาม พ.ร.บ. ไซเบอร์ฯ ที่เกี่ยวข้อง")
+
+        if "Banking / Finance / Insurance (BFSI)" in final_sectors:
+            df_bot = load_csv_data('BOT_Cybersecurity_Compliance_Mapping.csv')
+            display_compliance_table(df_bot, "🏦 รายละเอียดข้อกำหนดตามแนวทางของธนาคารแห่งประเทศไทย (BOT)")
             
     else:
         st.error("Could not determine a valid, mapped sector from any method to provide recommendations.")
-
