@@ -4,6 +4,7 @@ import cohere
 import json
 import re
 import pandas as pd
+import os
 
 # Use a secrets.toml file to store your API key
 # Example secrets.toml:
@@ -113,35 +114,6 @@ SECTOR_DETAILS = {
     }
 }
 
-# New data structure for the compliance mapping table
-COMPLIANCE_MAPPING_DATA = [
-    {
-        "มาตรา (Section)": "มาตรา 13(5)",
-        "หัวข้อกฎหมาย (โดยย่อ)": "หน่วยงาน CII ต้องกำหนดมาตรฐานที่เหมาะสมเพื่อรับมือภัยคุกคามไซเบอร์",
-        "Cybersecurity Service Mapping": "🔹 NIST CSF Gap Assessment\n🔹 Cybersecurity Maturity Assessment"
-    },
-    {
-        "มาตรา (Section)": "มาตรา 43, 44, 45",
-        "หัวข้อกฎหมาย (โดยย่อ)": "หน่วยงานต้องมีนโยบาย มาตรฐาน และแนวทางการป้องกันภัยไซเบอร์ตามแผนของชาติ",
-        "Cybersecurity Service Mapping": "🔹 NIST CSF Gap Assessment (Policy & Controls)\n🔹 Baseline Readiness Only"
-    },
-    {
-        "มาตรา (Section)": "มาตรา 54",
-        "หัวข้อกฎหมาย (โดยย่อ)": "ประเมินความเสี่ยงและตรวจสอบระบบความมั่นคงไซเบอร์อย่างน้อยปีละครั้ง โดยผู้ประเมินภายใน/ภายนอก",
-        "Cybersecurity Service Mapping": "🔹 Cyber Risk Assessment (IT/OT)"
-    },
-    {
-        "มาตรา (Section)": "มาตรา 58",
-        "หัวข้อกฎหมาย (โดยย่อ)": "หน่วยงานต้องรับมือกับภัยคุกคามไซเบอร์ โดยต้องประเมินสถานการณ์ ตรวจสอบ ป้องกัน แจ้งเหตุ ฯลฯ",
-        "Cybersecurity Service Mapping": "🔹 Cyber Incident Response Plan (IRP)"
-    },
-    {
-        "มาตรา (Section)": "มาตรา 59",
-        "หัวข้อกฎหมาย (โดยย่อ)": "สนับสนุนหน่วยงานอื่นในการรับมือภัยไซเบอร์ และแจ้งเตือนเมื่อพบภัย",
-        "Cybersecurity Service Mapping": "🔹 CIRP Tabletop Exercise (TTX)"
-    }
-]
-
 
 SECTOR_LABELS = list(SECTOR_DETAILS.keys())
 
@@ -246,46 +218,59 @@ def display_unified_recommendations(sectors):
 
 
 def display_compliance_mapping_table():
+    """Renders the compliance mapping data from the CSV file."""
     st.markdown("### 📑 รายละเอียดข้อกำหนดตาม พ.ร.บ. ไซเบอร์ฯ ที่เกี่ยวข้อง")
-    df = pd.DataFrame(COMPLIANCE_MAPPING_DATA)
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    
+    # Define the path to the CSV file
+    file_path = 'Cybersecurity_Law-Service_Mapping_Table.csv'
 
-# --- Main App Logic ---
+    try:
+        # Check if the file exists before trying to read it
+        if os.path.exists(file_path):
+            df = pd.read_csv(file_path)
+            # To handle multiline text within cells better, we can apply a style
+            # This is a bit advanced and might not be fully supported in all st versions
+            # For now, st.dataframe handles it reasonably well.
+            st.dataframe(df, use_container_width=True, hide_index=True)
+        else:
+            st.error(f"Error: The file '{file_path}' was not found.")
+            st.info("Please make sure the CSV file is in the same directory as the Streamlit app.")
+
+    except Exception as e:
+        st.error(f"An error occurred while reading or displaying the CSV file: {e}")
+
+# --- Streamlit UI Main Logic ---
 st.set_page_config(page_title="AI Sector + Service Mapper", page_icon="🧠", layout="wide")
 st.title("🧠 AI Sector Classifier + Service Recommendations")
 
-# Initialize session state keys for the new interactive flow
-if 'suggestions' not in st.session_state:
-    st.session_state.suggestions = []
 if 'org_to_classify' not in st.session_state:
     st.session_state.org_to_classify = None
 
 # --- UI for Search and Suggestions ---
-company_input = st.text_input("🔍 Enter a keyword to search for an organization:", key="company_input")
+search_col, button_col = st.columns([4, 1])
+with search_col:
+    company_input = st.text_input("🔍 Enter a keyword to search, or a full name to classify:", key="company_input", label_visibility="collapsed", placeholder="Enter a keyword to search, or a full name to classify...")
 
-if st.button("Search for Suggestions", key="search_button"):
-    st.session_state.org_to_classify = None # Reset previous classification
-    st.session_state.suggestions = find_suggestions(company_input)
-    if not st.session_state.suggestions and company_input:
-        st.info("No matches found in the static lists. You can classify the entered text directly.")
+with button_col:
+    if st.button("Search / Classify", key="search_button"):
+        st.session_state.org_to_classify = company_input
+        # Find suggestions based on the input
+        st.session_state.suggestions = find_suggestions(company_input) if company_input else []
+        # If there's an exact match in suggestions, prioritize it for classification
+        if company_input in st.session_state.suggestions:
+             st.session_state.org_to_classify = company_input
+        # Rerun to update the UI based on the new state
+        st.rerun()
 
-# Display suggestions as clickable buttons
-if st.session_state.suggestions:
-    st.markdown("---")
+# --- Display Suggestions if any are found ---
+if st.session_state.get('suggestions'):
     st.markdown("### 📝 Suggestions from Static Lists")
-    st.caption("Click an organization to classify, or refine your search.")
+    st.caption("Click a name to classify it, or classify your original text below.")
     for org in st.session_state.suggestions:
         if st.button(org, key=org):
             st.session_state.org_to_classify = org
             st.session_state.suggestions = []  # Clear suggestions after selection
-            st.rerun() # Rerun the script to trigger classification
-
-# Allow direct classification if there's input but no selection yet
-if company_input and not st.session_state.org_to_classify and not st.session_state.suggestions:
-     st.markdown("---")
-     if st.button(f"Classify '{company_input}' directly with AI", key="classify_direct"):
-         st.session_state.org_to_classify = company_input
-         st.rerun()
+            st.rerun()
 
 # --- Run Classification and Display Results ---
 if st.session_state.org_to_classify:
@@ -333,3 +318,4 @@ if st.session_state.org_to_classify:
             
     else:
         st.error("Could not determine a valid, mapped sector from any method to provide recommendations.")
+
