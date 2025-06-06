@@ -5,7 +5,9 @@ import json
 import re
 
 # --- Static Lists from Thai NCSA ---
-# These lists are used for a preliminary, high-priority classification check.
+# These lists contain specific Thai entities for a preliminary, high-priority classification.
+# The matching logic will check against these lists first before using the AI model.
+# The order of checking is CII -> REG -> GOV. The first match found determines the classification.
 NCSA_CII = [
     "กรมการปกครอง", "กรมการแพทย์", "กรมการแพทย์แผนไทยและการแพทย์ทางเลือก", "กรมควบคุมโรค", 
     "กรมป้องกันและบรรเทาสาธารณภัย", "กรมวิทยาศาสตร์การแพทย์", "กรมสนับสนุนบริการสุขภาพ", "กรมสุขภาพจิต", 
@@ -49,7 +51,6 @@ NCSA_GOV = [
     # This list is very long, so it is truncated here for readability in the code block.
     # The full list is used in the logic.
     "กรมการกงสุล", "กรมการขนส่งทางบก", "กรมการข้าว", "มหาวิทยาลัยเกษตรศาสตร์", "กระทรวงศึกษาธิการ",
-    # ... and many more government entities
 ] + [
     "กรมการค้าต่างประเทศ","กรมการค้าภายใน","กรมการจัดหางาน","กรมการท่องเที่ยว","กรมการเปลี่ยนแปลงสภาพภูมิอากาศและสิ่งแวดล้อม",
     "กรมการพัฒนาชุมชน","กรมการศาสนา","กรมกิจการเด็กและเยาวชน","กรมกิจการผู้สูงอายุ","กรมกิจการสตรีและสถาบันครอบครัว",
@@ -127,7 +128,7 @@ NCSA_GOV = [
     "สำนักงานคณะกรรมการสุขภาพแห่งชาติ","สำนักงานคณะกรรมการอ้อยและน้ำตาลทราย",
     "สำนักงานความร่วมมือพัฒนาเศรษฐกิจกับประเทศเพื่อนบ้าน (องค์การมหาชน)","สำนักงานทรัพยากรน้ำแห่งชาติ","สำนักงานธนานุเคราะห์",
     "สำนักงานนโยบายยุทธศาสตร์การค้า","สำนักงานนโยบายและแผนการขนส่งและจราจร","สำนักงานนโยบายและแผนทรัพยากรธรรมชาติและสิ่งแวดล้อม",
-    "สำนักงานนโยบายและแผนพลังงาน","สำนักงานนวัตกรรมแห่งชาติ (องค์การมหาชน)","สำนักงานบริหารและพัฒนาองค์ความรู้ (องค์การมหาชน)",
+    "สำนักงานนโยบายและแผนพลังงาน","สำนักงานนวัตกรรมแห่งชาติ (องค์การมหาชน)","สำนักงานบริหารและพัฒนาองค์ความรู้ (องค์การมhaชน)",
     "สำนักงานบริหารหนี้สาธารณะ","สำนักงานปฏิรูปที่ดินเพื่อเกษตรกรรม","สำนักงานประกันสังคม",
     "สำนักงานป้องกันและปราบปรามการทุจริตในภาครัฐ","สำนักงานป้องกันและปราบปรามการฟอกเงิน","สำนักงานผู้ตรวจการแผ่นดิน",
     "สำนักงานพระพุทธศาสนาแห่งชาติ","สำนักงานพัฒนาการวิจัยการเกษตร (องค์การมหาชน)","สำนักงานพัฒนาเทคโนโลยีอวกาศและภูมิสารสนเทศ (องค์การมหาชน)",
@@ -233,20 +234,34 @@ Example output:
 
 def classify_statically(entity_name):
     """
-    First-pass classification using static lists of Thai organizations.
-    Returns a sector name if a match is found, otherwise None.
+    Performs a case-insensitive check against static lists of Thai organizations.
+    This function implements a "first match wins" logic. It checks for a match in
+    NCSA_CII, then NCSA_REG, and finally NCSA_GOV, returning the first one it finds.
+    Args:
+        entity_name (str): The name of the organization to classify.
+    Returns:
+        str: The classified sector name (e.g., "Critical Infrastructure (CII)")
+             if a match is found, otherwise None.
     """
-    if any(item in entity_name for item in NCSA_CII):
+    # Normalize the input entity name to lowercase for robust, case-insensitive matching.
+    name_lower = entity_name.lower()
+    
+    if any(item.lower() in name_lower for item in NCSA_CII):
         return "Critical Infrastructure (CII)"
-    if any(item in entity_name for item in NCSA_REG):
+    if any(item.lower() in name_lower for item in NCSA_REG):
         return "Regulator"
-    if any(item in entity_name for item in NCSA_GOV):
+    if any(item.lower() in name_lower for item in NCSA_GOV):
         return "Government / SOE"
+    
     return None
 
 def classify_with_ai(company_name):
     """
-    Uses Cohere AI for dynamic classification if static classification fails.
+    Uses the Cohere AI model for dynamic classification if no static match is found.
+    Args:
+        company_name (str): The name of the organization to classify.
+    Returns:
+        str: The JSON response from the AI as a string, or None if an error occurs.
     """
     try:
         response = co.chat(
@@ -262,6 +277,9 @@ def classify_with_ai(company_name):
 def display_sector_details(sector, reason):
     """
     Renders the details for a given sector in the Streamlit UI.
+    Args:
+        sector (str): The name of the classified sector.
+        reason (str): The reason for the classification.
     """
     if sector in SECTOR_DETAILS:
         details = SECTOR_DETAILS[sector]
@@ -329,4 +347,3 @@ if company_input:
                 st.error(f"❌ Could not parse the AI's JSON response. Raw response was: {ai_result_raw}")
             except Exception as e:
                 st.error(f"❌ An error occurred while processing the AI result: {e}")
-
