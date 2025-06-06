@@ -25,26 +25,7 @@ NCSA_CII = [
     "การไฟฟ้าฝ่ายผลิตแห่งประเทศไทย", "การไฟฟ้าส่วนภูมิภาค", "การรถไฟฟ้าขนส่งมวลชนแห่งประเทศไทย",
     "การรถไฟแห่งประเทศไทย", "ตลาดหลักทรัพย์แห่งประเทศไทย", "ธนาคารกรุงเทพ", "ธนาคารกรุงไทย",
     "ธนาคารกรุงศรีอยุธยา", "ธนาคารกสิกรไทย", "ธนาคารทหารไทยธนชาต", "ธนาคารไทยพาณิชย์",
-    "ธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร", "ธนาคารแห่งประเทศไทย", "ธนาคารออมสิน",
-    "บริษัท การบินกรุงเทพ จำกัด (มหาชน)", "บริษัท ดับบลิวเอฟเอสพีจีคาร์โก้ จำกัด",
-    "บริษัท ตลาดสัญญาซื้อขายล่วงหน้า (ประเทศไทย) จำกัด (มหาชน)", "บริษัท ทริปเปิลที บรอดแบนด์ จำกัด (มหาชน)",
-    "บริษัท ทรู มูฟ เอช ยูนิเวอร์แซล คอมมิวนิเคชั่น จำกัด", "บริษัท ทรู อินเทอร์เน็ต คอร์ปอเรชั่น จำกัด",
-    "บริษัท ท่าอากาศยานไทย จำกัด (มหาชน)", "บริษัท โทรคมนาคมแห่งชาติ จำกัด (มหาชน)",
-    "บริษัท ไทยเวียตเจ็ทแอร์ จำกัด", "บริษัท เนชั่นแนล ไอทีเอ็มเอ๊กซ์ จำกัด", "บริษัท ปตท. จำกัด (มหาชน)",
-    "บริษัท รถไฟฟ้า ร.ฟ.ท. จำกัด", "บริษัท ระบบขนส่งมวลชนกรุงเทพ จำกัด (มหาชน)",
-    "บริษัท วิทยุการบินแห่งประเทศไทย จำกัด", "บริษัท ศูนย์รับฝากหลักทรัพย์ (ประเทศไทย) จำกัด",
-    "บริษัท สายการบินนกแอร์ จำกัด (มหาชน)", "บริษัท สำนักหักบัญชี (ประเทศไทย) จำกัด",
-    "บริษัท เอซี เอวิเอชั่น จำกัด", "บริษัท เอ็มเจ็ท จำกัด", "บริษัท แอดวานซ์ ไวร์เลส เน็ทเวอร์ค จำกัด",
-    "บริษัท แอ็ดวานซ์ เอวิเอชั่น เจ็ท จำกัด",
-    "ศูนย์เทคโนโลยีสารสนเทศกลาง สำนักงานเทคโนโลยีสารสนเทศและการสื่อสาร สำนักงานตำรวจแห่งชาติ",
-    "ศูนย์เทคโนโลยีสารสนเทศและการสื่อสาร กรมชลประทาน",
-    "ศูนย์เทคโนโลยีสารสนเทศและการสื่อสาร สำนักงานปลัดกระทรวงสาธารณสุข", "สำนักข่าวกรองแห่งชาติ",
-    "สำนักงานเขตสุขภาพที่ 5", "สำนักงานคณะกรรมการกำกับกิจการพลังงาน", "สำนักงานคณะกรรรมการอาหารและยา",
-    "สำนักงานตรวจคนเข้าเมือง", "สำนักงานปรมาณูเพื่อสันติ", "สำนักงานปลัดกระทรวงกลาโหม",
-    "สำนักงานปลัดกระทรวงการคลัง", "สำนักงานพัฒนารัฐบาลดิจิทัล (องค์การมหาชน)",
-    "สำนักงานสภาความมั่นคงแห่งชาติ", "สำนักงานหลักประกันสุขภาพแห่งชาติ (สปสช.)",
-    "สำนักบริหารจัดการน้ำและอุทกวิทยา", "สำนักสุขภาพดิจิทัล สำนักงานปลัดกระทรวงสาธารณสุข",
-    "องค์การเภสัชกรรม"
+    "ธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร", "ธนาคารแห่งประเทศไทย", "ธนาคารออมสิน"
 ]
 NCSA_REG = [
     "กรมการขนส่งทางราง", "กรมการปกครอง", "กรมชลประทาน", "กรมศุลกากร", "กระทรวงการคลัง",
@@ -61,6 +42,9 @@ NCSA_GOV = [
     "กรมการค้าต่างประเทศ","กรมการค้าภายใน","กรมการจัดหางาน","กรมการท่องเที่ยว","กรมการเปลี่ยนแปลงสภาพภูมิอากาศและสิ่งแวดล้อม",
     "กรมการพัฒนาชุมชน","กรมการศาสนา","กรมกิจการเด็กและเยาวชน","กรมกิจการผู้สูงอายุ","กรมกิจการสตรีและสถาบันครอบครัว",
 ]
+# Combine all static lists into a single list for easier searching
+ALL_STATIC_ORGS = sorted(list(set(NCSA_CII + NCSA_REG + NCSA_GOV)))
+
 
 # Sector-to-service mapping with compliance and regulator info
 SECTOR_DETAILS = {
@@ -173,6 +157,13 @@ Output:
 {{"sector": "Banking / Finance / Insurance (BFSI)", "reason": "The name contains 'Krungthai' and 'AXA', which are strongly associated with banking and insurance."}}
 """
 
+def find_suggestions(keyword):
+    """Searches the combined static list for names containing the keyword."""
+    if not keyword:
+        return []
+    keyword_lower = keyword.lower()
+    return [org for org in ALL_STATIC_ORGS if keyword_lower in org.lower()]
+
 def classify_statically(entity_name):
     name_lower = entity_name.lower()
     if any(item.lower() in name_lower for item in NCSA_CII):
@@ -210,6 +201,7 @@ def classify_with_ai(company_name):
         return None, None
 
 def display_unified_recommendations(sectors):
+    # This function remains the same
     key_services = set()
     secondary_opportunities = set()
     compliance_drivers = set()
@@ -252,31 +244,58 @@ def display_unified_recommendations(sectors):
             for reg in sorted(list(regulators)):
                 st.markdown(f"- {reg}")
 
+
 def display_compliance_mapping_table():
-    """Renders the compliance mapping data using st.dataframe for better formatting."""
     st.markdown("### 📑 รายละเอียดข้อกำหนดตาม พ.ร.บ. ไซเบอร์ฯ ที่เกี่ยวข้อง")
-    
-    # Convert the list of dictionaries to a Pandas DataFrame
     df = pd.DataFrame(COMPLIANCE_MAPPING_DATA)
-    
-    # Display the DataFrame using Streamlit's dedicated component
     st.dataframe(df, use_container_width=True, hide_index=True)
 
-
-# --- Streamlit UI Main Logic ---
+# --- Main App Logic ---
 st.set_page_config(page_title="AI Sector + Service Mapper", page_icon="🧠", layout="wide")
 st.title("🧠 AI Sector Classifier + Service Recommendations")
 
-company_input = st.text_input("🔍 Enter customer or organization name (Thai or English):", key="company_input")
+# Initialize session state keys for the new interactive flow
+if 'suggestions' not in st.session_state:
+    st.session_state.suggestions = []
+if 'org_to_classify' not in st.session_state:
+    st.session_state.org_to_classify = None
 
-if company_input:
+# --- UI for Search and Suggestions ---
+company_input = st.text_input("🔍 Enter a keyword to search for an organization:", key="company_input")
+
+if st.button("Search for Suggestions", key="search_button"):
+    st.session_state.org_to_classify = None # Reset previous classification
+    st.session_state.suggestions = find_suggestions(company_input)
+    if not st.session_state.suggestions and company_input:
+        st.info("No matches found in the static lists. You can classify the entered text directly.")
+
+# Display suggestions as clickable buttons
+if st.session_state.suggestions:
     st.markdown("---")
-    
-    with st.spinner("Running classification..."):
-        static_sector = classify_statically(company_input)
-        ai_sector, ai_reason = classify_with_ai(company_input)
+    st.markdown("### 📝 Suggestions from Static Lists")
+    st.caption("Click an organization to classify, or refine your search.")
+    for org in st.session_state.suggestions:
+        if st.button(org, key=org):
+            st.session_state.org_to_classify = org
+            st.session_state.suggestions = []  # Clear suggestions after selection
+            st.rerun() # Rerun the script to trigger classification
 
-    st.markdown("## 📊 Classification Analysis")
+# Allow direct classification if there's input but no selection yet
+if company_input and not st.session_state.org_to_classify and not st.session_state.suggestions:
+     st.markdown("---")
+     if st.button(f"Classify '{company_input}' directly with AI", key="classify_direct"):
+         st.session_state.org_to_classify = company_input
+         st.rerun()
+
+# --- Run Classification and Display Results ---
+if st.session_state.org_to_classify:
+    st.markdown("---")
+    st.markdown(f"## 📊 Classification Analysis for: **{st.session_state.org_to_classify}**")
+
+    with st.spinner("Running classification..."):
+        static_sector = classify_statically(st.session_state.org_to_classify)
+        ai_sector, ai_reason = classify_with_ai(st.session_state.org_to_classify)
+
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("### 📜 Rule-Based (Official)")
@@ -307,7 +326,6 @@ if company_input:
     if final_sectors:
         display_unified_recommendations(list(final_sectors))
         
-        # Conditionally display the compliance mapping table
         is_gov_related = any(s in ["Critical Infrastructure (CII)", "Government / SOE", "Regulator"] for s in final_sectors)
         if is_gov_related:
             st.markdown("---")
