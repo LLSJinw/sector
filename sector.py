@@ -4,6 +4,16 @@ import cohere
 import json
 import re
 
+# Use a secrets.toml file to store your API key
+# Example secrets.toml:
+# COHERE_API_KEY = "your_cohere_api_key_here"
+try:
+    co = cohere.Client(st.secrets["COHERE_API_KEY"])
+except Exception as e:
+    st.error("Cohere API key not found. Please add it to your Streamlit secrets.")
+    st.stop()
+
+
 # --- Static Lists from Thai NCSA ---
 # These lists contain specific Thai entities for a preliminary, high-priority classification.
 # The matching logic will check against these lists first before using the AI model.
@@ -78,7 +88,7 @@ NCSA_GOV = [
     "บริษัท อสมท จำกัด (มหาชน)","บริษัท อู่กรุงเทพ จำกัด","มหาวิทยาลัยการกีฬาแห่งชาติ","มหาวิทยาลัยกาฬสินธุ์",
     "มหาวิทยาลัยขอนแก่น","มหาวิทยาลัยเชียงใหม่","มหาวิทยาลัยทักษิณ","มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี",
     "มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ","มหาวิทยาลัยเทคโนโลยีราชมงคลกรุงเทพ","มหาวิทยาลัยเทคโนโลยีราชมงคลตะวันออก",
-    "มหาวิทยาลัยเทคโนโลยีราชมงคลธัญบุรี","มหาวิทยาลัยเทคโนโลยีราชมงคลพระนคร","มหาวิทยาลัยเทคโนโลยีราชมงคลรัตนโกสินทร์",
+    "มหาวิทยาลัยเทคโนโลยีราชมงคลธัญบุรี","มหาวิทยาลัยเทคโนโลยีราชมงคลพระนคร","มหาวิทยาลัยเทคโนโลยีราชมgคลรัตนโกสินทร์",
     "มหาวิทยาลัยเทคโนโลยีราชมงคลล้านนา","มหาวิทยาลัยเทคโนโลยีราชมงคลศรีวิชัย","มหาวิทยาลัยเทคโนโลยีราชมงคลสุวรรณภูมิ",
     "มหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน","มหาวิทยาลัยเทคโนโลยีสุรนารี","มหาวิทยาลัยธรรมศาสตร์","มหาวิทยาลัยนครพนม",
     "มหาวิทยาลัยนราธิวาสราชนครินทร์","มหาวิทยาลัยนเรศวร","มหาวิทยาลัยนวมินทราธิราช","มหาวิทยาลัยบูรพา","มหาวิทยาลัยพะเยา",
@@ -148,9 +158,6 @@ NCSA_GOV = [
     "องค์การสุรา","องค์การอุตสาหกรรมป่าไม้",
 ]
 
-
-# Initialize Cohere Chat model with your API key
-co = cohere.Client("sNIAP0wwbfOagyZr75up0a6tVejuZ6ONH0ODCsOa")
 
 # Sector-to-service mapping with compliance and regulator info
 SECTOR_DETAILS = {
@@ -236,32 +243,21 @@ Output:
 def classify_statically(entity_name):
     """
     Performs a case-insensitive check against static lists of Thai organizations.
-    This function implements a "first match wins" logic. It checks for a match in
-    NCSA_CII, then NCSA_REG, and finally NCSA_GOV, returning the first one it finds.
-    Args:
-        entity_name (str): The name of the organization to classify.
-    Returns:
-        str: The classified sector name (e.g., "Critical Infrastructure (CII)")
-             if a match is found, otherwise None.
+    Returns the sector name if a match is found, otherwise None.
     """
     name_lower = entity_name.lower()
-    
     if any(item.lower() in name_lower for item in NCSA_CII):
         return "Critical Infrastructure (CII)"
     if any(item.lower() in name_lower for item in NCSA_REG):
         return "Regulator"
     if any(item.lower() in name_lower for item in NCSA_GOV):
         return "Government / SOE"
-    
     return None
 
 def classify_with_ai(company_name):
     """
     Uses the Cohere AI model for dynamic classification and parses the result.
-    Args:
-        company_name (str): The name of the organization to classify.
-    Returns:
-        tuple: A tuple containing (sector, reason). Returns (None, None) on failure.
+    Returns a tuple containing (sector, reason). Returns (None, None) on failure.
     """
     try:
         response_text = co.chat(
@@ -269,15 +265,11 @@ def classify_with_ai(company_name):
             message=f"{PROMPT_INSTRUCTION}\nCompany: {company_name}",
             temperature=0.3
         ).text
-        
-        # Clean and parse the JSON response
         cleaned_json_str = re.sub(r"```json|```", "", response_text).strip()
         parsed_json = json.loads(cleaned_json_str)
         sector = parsed_json.get("sector", "").strip()
         reason = parsed_json.get("reason", "No reason provided by AI.")
-        
         return sector if sector else None, reason
-        
     except json.JSONDecodeError:
         st.warning(f"⚠️ AI returned a non-JSON response: '{response_text}'")
         return None, None
@@ -287,11 +279,11 @@ def classify_with_ai(company_name):
 
 def display_unified_recommendations(sectors):
     """
-    Combines recommendations from multiple sectors and displays a single, unified list.
+    Combines recommendations from a list of sectors into a single, unified display.
     Args:
-        sectors (list): A list of sector names to combine recommendations for.
+        sectors (list): A list of unique sector names to get recommendations for.
     """
-    # Using sets to automatically handle duplicates
+    # Use sets to automatically handle and merge duplicates from different sectors
     key_services = set()
     secondary_opportunities = set()
     compliance_drivers = set()
@@ -308,7 +300,6 @@ def display_unified_recommendations(sectors):
     st.markdown("## 🌟 Unified Recommendations")
     st.markdown("Based on the combined analysis of both rule-based and AI classifications.")
     
-    # Create the display columns
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("### ✅ Key Services")
@@ -345,7 +336,7 @@ def display_unified_recommendations(sectors):
         else:
             st.markdown("_No specific regulators found._")
 
-# --- Streamlit UI ---
+# --- Streamlit UI Main Logic ---
 st.set_page_config(page_title="AI Sector + Service Mapper", page_icon="🧠", layout="wide")
 st.title("🧠 AI Sector Classifier + Service Recommendations")
 
@@ -354,16 +345,14 @@ company_input = st.text_input("🔍 Enter customer or organization name (Thai or
 if company_input:
     st.markdown("---")
     
-    # --- Step 1 & 2: Get both classifications ---
     with st.spinner("Running classification..."):
         static_sector = classify_statically(company_input)
         ai_sector, ai_reason = classify_with_ai(company_input)
 
-    # --- Display Classification Results ---
     st.markdown("## 📊 Classification Analysis")
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("### 룰 Rule-Based (Official)")
+        st.markdown("### 📜 Rule-Based (Official)")
         if static_sector:
             st.success(f"**{static_sector}**")
             st.caption("Matched from a predefined NCSA list.")
@@ -382,11 +371,14 @@ if company_input:
 
     st.markdown("---")
 
-    # --- Step 3: Combine sectors and display unified recommendations ---
-    # Collect all unique, valid sectors from both methods
-    final_sectors = list(set(s for s in [static_sector, ai_sector] if s and s in SECTOR_DETAILS))
+    # Collect unique, valid sectors from both methods to create a single recommendation set
+    final_sectors = set()
+    if static_sector and static_sector in SECTOR_DETAILS:
+        final_sectors.add(static_sector)
+    if ai_sector and ai_sector in SECTOR_DETAILS:
+        final_sectors.add(ai_sector)
 
     if final_sectors:
-        display_unified_recommendations(final_sectors)
+        display_unified_recommendations(list(final_sectors))
     else:
         st.error("Could not determine a valid sector from any method to provide recommendations.")
