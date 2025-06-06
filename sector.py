@@ -150,7 +150,7 @@ NCSA_GOV = [
 
 
 # Initialize Cohere Chat model with your API key
-co = cohere.Client("sNIAP0wwbfOagyZr75up0a6tVejuZ6ONH0ODCsOa") 
+co = cohere.Client("sNIAP0wwbfOagyZr75up0a6tVejuZ6ONH0ODCsOa")
 
 # Sector-to-service mapping with compliance and regulator info
 SECTOR_DETAILS = {
@@ -257,80 +257,93 @@ def classify_statically(entity_name):
 
 def classify_with_ai(company_name):
     """
-    Uses the Cohere AI model for dynamic classification.
+    Uses the Cohere AI model for dynamic classification and parses the result.
     Args:
         company_name (str): The name of the organization to classify.
     Returns:
-        str: The JSON response from the AI as a string, or None if an error occurs.
+        tuple: A tuple containing (sector, reason). Returns (None, None) on failure.
     """
     try:
-        response = co.chat(
+        response_text = co.chat(
             model="command-r-plus",
             message=f"{PROMPT_INSTRUCTION}\nCompany: {company_name}",
             temperature=0.3
-        )
-        return response.text
-    except Exception as e:
-        st.error(f"Error calling Cohere AI: {e}")
-        return None
-
-def display_sector_details(sector, reason, header="Sector Summary"):
-    """
-    Renders the details for a given sector in the Streamlit UI.
-    Args:
-        sector (str): The name of the classified sector.
-        reason (str): The reason for the classification.
-        header (str): The title for this section.
-    """
-    st.markdown(f"## 🌟 {header}")
-    if sector in SECTOR_DETAILS:
-        details = SECTOR_DETAILS[sector]
-        st.markdown(f"**🏷️ Sector:** `{sector}`")
-        st.markdown(f"**📌 Reason:** {reason}")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("### ✅ Key Services")
-            for svc in details["key_services"]:
-                st.markdown(f"- {svc}")
-        with col2:
-            st.markdown("### 💡 Secondary Opportunities")
-            for opt in details["secondary_opportunities"]:
-                st.markdown(f"- {opt}")
-        st.markdown("---")
-        col3, col4 = st.columns(2)
-        with col3:
-            st.markdown("### 📋 Compliance Drivers")
-            for law in details.get("compliance_drivers", []):
-                st.markdown(f"- {law}")
-        with col4:
-            st.markdown("### 🏩 Sector Regulators")
-            for reg in details.get("regulators", []):
-                st.markdown(f"- {reg}")
-    else:
-        st.warning(f"❗ **Sector Not Mapped:** The sector '{sector}' from the AI is not in the details catalog. Showing raw AI reason below.")
-        st.markdown(f"**📌 AI's Reason:** {reason}")
-
-
-def process_ai_result(ai_result_raw, header="AI Classification"):
-    """Processes and displays the AI classification result."""
-    if ai_result_raw:
-        st.success("✅ AI Analysis Received")
-        st.code(ai_result_raw, language="json")
-        try:
-            cleaned_json_str = re.sub(r"```json|```", "", ai_result_raw).strip()
-            parsed_json = json.loads(cleaned_json_str)
-            ai_sector = parsed_json.get("sector", "").strip()
-            ai_reason = parsed_json.get("reason", "No reason provided by AI.")
-            
-            if ai_sector:
-                display_sector_details(ai_sector, ai_reason, header=header)
-            else:
-                st.error("❌ AI returned a response but without a sector.")
+        ).text
         
-        except json.JSONDecodeError:
-            st.error(f"❌ Could not parse the AI's JSON response. Raw response was: {ai_result_raw}")
-        except Exception as e:
-            st.error(f"❌ An error occurred while processing the AI result: {e}")
+        # Clean and parse the JSON response
+        cleaned_json_str = re.sub(r"```json|```", "", response_text).strip()
+        parsed_json = json.loads(cleaned_json_str)
+        sector = parsed_json.get("sector", "").strip()
+        reason = parsed_json.get("reason", "No reason provided by AI.")
+        
+        return sector if sector else None, reason
+        
+    except json.JSONDecodeError:
+        st.warning(f"⚠️ AI returned a non-JSON response: '{response_text}'")
+        return None, None
+    except Exception as e:
+        st.error(f"Error calling or parsing Cohere AI: {e}")
+        return None, None
+
+def display_unified_recommendations(sectors):
+    """
+    Combines recommendations from multiple sectors and displays a single, unified list.
+    Args:
+        sectors (list): A list of sector names to combine recommendations for.
+    """
+    # Using sets to automatically handle duplicates
+    key_services = set()
+    secondary_opportunities = set()
+    compliance_drivers = set()
+    regulators = set()
+
+    for sector in sectors:
+        if sector in SECTOR_DETAILS:
+            details = SECTOR_DETAILS[sector]
+            key_services.update(details.get("key_services", []))
+            secondary_opportunities.update(details.get("secondary_opportunities", []))
+            compliance_drivers.update(details.get("compliance_drivers", []))
+            regulators.update(details.get("regulators", []))
+
+    st.markdown("## 🌟 Unified Recommendations")
+    st.markdown("Based on the combined analysis of both rule-based and AI classifications.")
+    
+    # Create the display columns
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("### ✅ Key Services")
+        if key_services:
+            for svc in sorted(list(key_services)):
+                st.markdown(f"- {svc}")
+        else:
+            st.markdown("_No specific key services found._")
+            
+    with col2:
+        st.markdown("### 💡 Secondary Opportunities")
+        if secondary_opportunities:
+            for opt in sorted(list(secondary_opportunities)):
+                st.markdown(f"- {opt}")
+        else:
+            st.markdown("_No specific secondary opportunities found._")
+            
+    st.markdown("---")
+
+    col3, col4 = st.columns(2)
+    with col3:
+        st.markdown("### 📋 Compliance Drivers")
+        if compliance_drivers:
+            for law in sorted(list(compliance_drivers)):
+                st.markdown(f"- {law}")
+        else:
+            st.markdown("_No specific compliance drivers found._")
+
+    with col4:
+        st.markdown("### 🏩 Sector Regulators")
+        if regulators:
+            for reg in sorted(list(regulators)):
+                st.markdown(f"- {reg}")
+        else:
+            st.markdown("_No specific regulators found._")
 
 # --- Streamlit UI ---
 st.set_page_config(page_title="AI Sector + Service Mapper", page_icon="🧠", layout="wide")
@@ -339,30 +352,41 @@ st.title("🧠 AI Sector Classifier + Service Recommendations")
 company_input = st.text_input("🔍 Enter customer or organization name (Thai or English):", key="company_input")
 
 if company_input:
-    # --- Step 1: Attempt static classification ---
     st.markdown("---")
-    st.info("**Step 1: Checking for official NCSA classification...**")
-    static_sector = classify_statically(company_input)
     
-    if static_sector:
-        st.success(f"**✅ Match Found!** This entity is on a predefined NCSA list.")
-        display_sector_details(static_sector, "Classified based on a predefined list of Thai NCSA entities.", header="Primary Classification (Rule-Based)")
-        
-        # --- Also get the AI's opinion for more nuance ---
-        st.markdown("---")
-        st.info("**Step 2: Getting AI-based business characterization for more detail...**")
-        with st.spinner("Analyzing business characteristics via Cohere AI..."):
-            ai_result_raw = classify_with_ai(company_input)
-        
-        if ai_result_raw:
-            process_ai_result(ai_result_raw, header="Business Characterization (AI Second Opinion)")
+    # --- Step 1 & 2: Get both classifications ---
+    with st.spinner("Running classification..."):
+        static_sector = classify_statically(company_input)
+        ai_sector, ai_reason = classify_with_ai(company_input)
 
+    # --- Display Classification Results ---
+    st.markdown("## 📊 Classification Analysis")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("### 룰 Rule-Based (Official)")
+        if static_sector:
+            st.success(f"**{static_sector}**")
+            st.caption("Matched from a predefined NCSA list.")
+        else:
+            st.warning("**No Match**")
+            st.caption("Not found in predefined NCSA lists.")
+    
+    with col2:
+        st.markdown("### 🤖 AI-Based (Characterization)")
+        if ai_sector:
+            st.info(f"**{ai_sector}**")
+            st.caption(f"Reason: {ai_reason}")
+        else:
+            st.warning("**No AI Classification**")
+            st.caption("AI could not determine a sector.")
+
+    st.markdown("---")
+
+    # --- Step 3: Combine sectors and display unified recommendations ---
+    # Collect all unique, valid sectors from both methods
+    final_sectors = list(set(s for s in [static_sector, ai_sector] if s and s in SECTOR_DETAILS))
+
+    if final_sectors:
+        display_unified_recommendations(final_sectors)
     else:
-        # --- Fallback to AI if no static match is found ---
-        st.warning("⚠️ No match in static NCSA lists.")
-        st.info("**Proceeding to AI-based dynamic classification...**")
-        with st.spinner("Classifying sector via Cohere AI..."):
-            ai_result_raw = classify_with_ai(company_input)
-
-        if ai_result_raw:
-            process_ai_result(ai_result_raw, header="AI Classification")
+        st.error("Could not determine a valid sector from any method to provide recommendations.")
