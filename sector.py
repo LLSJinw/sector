@@ -7,7 +7,7 @@ import pandas as pd
 import os
 
 # --- Authentication Setup ---
-PASSWORD = st.secrets["auth"]["password"]
+PASSWORD = "รหัสผ่าน"
 
 # Initialize session state for authentication
 if "authenticated" not in st.session_state:
@@ -16,10 +16,10 @@ if "authenticated" not in st.session_state:
 # --- Password Protection ---
 if not st.session_state["authenticated"]:
     st.set_page_config(page_title="Login - Sector Mapper", layout="centered")
-    st.title("🔐")
-    password_input = st.text_input("", type="password")
+    st.title("🔐 กรุณาใส่รหัสผ่านเพื่อเข้าใช้งาน")
+    password_input = st.text_input("รหัสผ่าน:", type="password")
     
-    if st.button("ํHello World!"):
+    if st.button("เข้าสู่ระบบ"):
         if password_input == PASSWORD:
             st.session_state["authenticated"] = True
             st.rerun()  # Rerun the app to show the main content
