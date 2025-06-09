@@ -23,8 +23,8 @@ if "authenticated" not in st.session_state:
 # --- Password Protection ---
 if not st.session_state["authenticated"]:
     st.set_page_config(page_title="Login - Sector Mapper", layout="centered")
-    st.title("🔐 กรุณาใส่รหัสผ่านเพื่อเข้าใช้งาน")
-    password_input = st.text_input("รหัสผ่าน:", type="password")
+    st.title("🔐")
+    password_input = st.text_input("", type="password")
     
     if st.button("เข้าสู่ระบบ"):
         if password_input == PASSWORD:
