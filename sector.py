@@ -23,10 +23,10 @@ if "authenticated" not in st.session_state:
 # --- Password Protection ---
 if not st.session_state["authenticated"]:
     st.set_page_config(page_title="Login - Sector Mapper", layout="centered")
-    st.title("🔐")
+    st.title("Hello World!")
     password_input = st.text_input("", type="password")
     
-    if st.button("เข้าสู่ระบบ"):
+    if st.button("🔐🔐🔐"):
         if password_input == PASSWORD:
             st.session_state["authenticated"] = True
             st.rerun()  # Rerun the app to show the main content
