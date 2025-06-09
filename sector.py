@@ -7,7 +7,7 @@ import pandas as pd
 import os
 
 # --- Authentication Setup ---
-PASSWORD = "รหัสผ่าน"
+PASSWORD = st.secrets["auth"]["password"]
 
 # Initialize session state for authentication
 if "authenticated" not in st.session_state:
