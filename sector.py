@@ -7,7 +7,14 @@ import pandas as pd
 import os
 
 # --- Authentication Setup ---
-PASSWORD = "รหัสผ่าน"
+# The password is now fetched from Streamlit's secure secrets management
+# Users must create a .streamlit/secrets.toml file with APP_PASSWORD = "รหัสผ่าน"
+try:
+    PASSWORD = st.secrets["APP_PASSWORD"]
+except KeyError:
+    st.error("Authentication password not found in st.secrets. Please configure it.")
+    st.stop()
+
 
 # Initialize session state for authentication
 if "authenticated" not in st.session_state:
