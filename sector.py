@@ -6,6 +6,32 @@ import re
 import pandas as pd
 import os
 
+# --- Authentication Setup ---
+PASSWORD = "รหัสผ่าน"
+
+# Initialize session state for authentication
+if "authenticated" not in st.session_state:
+    st.session_state["authenticated"] = False
+
+# --- Password Protection ---
+if not st.session_state["authenticated"]:
+    st.set_page_config(page_title="Login - Sector Mapper", layout="centered")
+    st.title("🔐 กรุณาใส่รหัสผ่านเพื่อเข้าใช้งาน")
+    password_input = st.text_input("รหัสผ่าน:", type="password")
+    
+    if st.button("เข้าสู่ระบบ"):
+        if password_input == PASSWORD:
+            st.session_state["authenticated"] = True
+            st.rerun()  # Rerun the app to show the main content
+        else:
+            st.error("❌ รหัสผ่านไม่ถูกต้อง กรุณาลองอีกครั้ง")
+    
+    # Stop the app from running further until authenticated
+    st.stop()
+
+
+# --- Main Application Logic (runs only after authentication) ---
+
 # Use a secrets.toml file to store your API key
 # Example secrets.toml:
 # COHERE_API_KEY = "your_cohere_api_key_here"
@@ -50,7 +76,7 @@ ALL_STATIC_ORGS = sorted(list(set(NCSA_CII + NCSA_REG + NCSA_GOV)))
 # --- Keyword lists for BFSI sub-sector refinement ---
 BANKING_KEYWORDS = ["ธนาคาร", "bank", "tmb", "scb", "kbank", "สินเชื่อ", "ttb"]
 INSURANCE_KEYWORDS = ["ประกัน", "insurance", "life", "เมืองไทย", "กรุงเทพประกันชีวิต", "axa", "aia", "อินชัวรันส์"]
-SEC_KEYWORDS = ["หลักทรัพย์", "securities", "บลจ.", "ตลาดหลักทรัพย์", "asset management", "exchange"]
+SEC_KEYWORDS = ["หลักทรัพย์", "securities", "บลจ.", "ตลาดหลักทรัพย์", "asset management", "exchange", "ก.ล.ต."]
 
 
 # Sector-to-service mapping with compliance and regulator info
@@ -179,7 +205,6 @@ def classify_with_ai(company_name):
         return None, None
 
 def display_unified_recommendations(sectors):
-    # This function remains the same
     key_services = set()
     secondary_opportunities = set()
     compliance_drivers = set()
@@ -242,98 +267,99 @@ def display_compliance_table(df, title, file_path):
         st.warning(f"Could not load data for this section. Please ensure the file '{file_path}' exists in the application directory.")
 
 
-# --- Streamlit UI Main Logic ---
-st.set_page_config(page_title="AI Sector + Service Mapper", page_icon="🧠", layout="wide")
-st.title("🧠 AI Sector Classifier + Service Recommendations")
+# --- Function to display the main app ---
+def main_app():
+    st.set_page_config(page_title="AI Sector + Service Mapper", page_icon="🧠", layout="wide")
+    st.title("🧠 AI Sector Classifier + Service Recommendations")
 
-if 'org_to_classify' not in st.session_state:
-    st.session_state.org_to_classify = None
+    if 'org_to_classify' not in st.session_state:
+        st.session_state.org_to_classify = None
 
-search_col, button_col = st.columns([4, 1])
-with search_col:
-    company_input = st.text_input("🔍 Enter a keyword to search, or a full name to classify:", key="company_input", label_visibility="collapsed", placeholder="Enter a keyword to search, or a full name to classify...")
+    search_col, button_col = st.columns([4, 1])
+    with search_col:
+        company_input = st.text_input("🔍 Enter a keyword to search, or a full name to classify:", key="company_input", label_visibility="collapsed", placeholder="Enter a keyword to search, or a full name to classify...")
 
-with button_col:
-    if st.button("Search / Classify", key="search_button"):
-        st.session_state.org_to_classify = company_input
-        st.session_state.suggestions = find_suggestions(company_input) if company_input else []
-        if company_input in st.session_state.suggestions:
-             st.session_state.org_to_classify = company_input
-        st.rerun()
-
-if st.session_state.get('suggestions'):
-    st.markdown("### 📝 Suggestions from Static Lists")
-    st.caption("Click a name to classify it, or classify your original text below.")
-    for org in st.session_state.suggestions:
-        if st.button(org, key=org):
-            st.session_state.org_to_classify = org
-            st.session_state.suggestions = []
+    with button_col:
+        if st.button("Search / Classify", key="search_button"):
+            st.session_state.org_to_classify = company_input
+            st.session_state.suggestions = find_suggestions(company_input) if company_input else []
+            if company_input in st.session_state.suggestions:
+                 st.session_state.org_to_classify = company_input
             st.rerun()
 
-if st.session_state.org_to_classify:
-    st.markdown("---")
-    st.markdown(f"## 📊 Classification Analysis for: **{st.session_state.org_to_classify}**")
+    if st.session_state.get('suggestions'):
+        st.markdown("### 📝 Suggestions from Static Lists")
+        st.caption("Click a name to classify it, or classify your original text below.")
+        for org in st.session_state.suggestions:
+            if st.button(org, key=org):
+                st.session_state.org_to_classify = org
+                st.session_state.suggestions = []
+                st.rerun()
 
-    with st.spinner("Running classification..."):
-        static_sector = classify_statically(st.session_state.org_to_classify)
-        ai_sector, ai_reason = classify_with_ai(st.session_state.org_to_classify)
-
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("### 📜 Rule-Based (Official)")
-        if static_sector:
-            st.success(f"**{static_sector}**")
-            st.caption("Matched from a predefined NCSA list.")
-        else:
-            st.warning("**No Match**")
-            st.caption("Not found in predefined NCSA lists.")
-    
-    with col2:
-        st.markdown("### 🤖 AI-Based (Characterization)")
-        if ai_sector:
-            st.info(f"**{ai_sector}**")
-            st.caption(f"Reason: {ai_reason}")
-        else:
-            st.warning("**No AI Classification**")
-            st.caption("AI could not determine a sector.")
-
-    st.markdown("---")
-
-    final_sectors = set()
-    if static_sector and static_sector in SECTOR_DETAILS:
-        final_sectors.add(static_sector)
-    if ai_sector and ai_sector in SECTOR_DETAILS:
-        final_sectors.add(ai_sector)
-
-    if final_sectors:
-        display_unified_recommendations(list(final_sectors))
-        
+    if st.session_state.org_to_classify:
         st.markdown("---")
-        st.markdown("## ภาคผนวก: ข้อกำหนดเฉพาะหน่วยงานกำกับดูแล (Appendix)")
+        st.markdown(f"## 📊 Classification Analysis for: **{st.session_state.org_to_classify}**")
+
+        with st.spinner("Running classification..."):
+            static_sector = classify_statically(st.session_state.org_to_classify)
+            ai_sector, ai_reason = classify_with_ai(st.session_state.org_to_classify)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("### 📜 Rule-Based (Official)")
+            if static_sector:
+                st.success(f"**{static_sector}**")
+                st.caption("Matched from a predefined NCSA list.")
+            else:
+                st.warning("**No Match**")
+                st.caption("Not found in predefined NCSA lists.")
         
-        is_gov_related = any(s in ["Critical Infrastructure (CII)", "Government / SOE", "Regulator"] for s in final_sectors)
-        if is_gov_related:
-            df_law = load_csv_data('Cybersecurity_Law-Service_Mapping_Table.csv')
-            display_compliance_table(df_law, "📑 รายละเอียดข้อกำหนดตาม พ.ร.บ. ไซเบอร์ฯ", 'Cybersecurity_Law-Service_Mapping_Table.csv')
+        with col2:
+            st.markdown("### 🤖 AI-Based (Characterization)")
+            if ai_sector:
+                st.info(f"**{ai_sector}**")
+                st.caption(f"Reason: {ai_reason}")
+            else:
+                st.warning("**No AI Classification**")
+                st.caption("AI could not determine a sector.")
 
-        if "Banking / Finance / Insurance (BFSI)" in final_sectors:
-            org_name_lower = st.session_state.org_to_classify.lower()
-            
-            # Refined check for BOT
-            if any(keyword in org_name_lower for keyword in BANKING_KEYWORDS):
-                df_bot = load_csv_data('BOT_Cybersecurity_Compliance_Mapping.csv')
-                display_compliance_table(df_bot, "🏦 รายละเอียดข้อกำหนดตามแนวทางของธนาคารแห่งประเทศไทย (BOT)", 'BOT_Cybersecurity_Compliance_Mapping.csv')
-            
-            # Refined check for OIC
-            if any(keyword in org_name_lower for keyword in INSURANCE_KEYWORDS):
-                df_oic = load_csv_data('OIC_Cybersecurity_Service_Mapping.csv')
-                display_compliance_table(df_oic, "🛡️ รายละเอียดข้อกำหนดตามแนวทางของสำนักงาน คปภ. (OIC)", 'OIC_Cybersecurity_Service_Mapping.csv')
-            
-            # Refined check for SEC
-            if any(keyword in org_name_lower for keyword in SEC_KEYWORDS):
-                df_sec = load_csv_data('SEC_Cybersecurity_Service_Mapping.csv')
-                display_compliance_table(df_sec, "📈 รายละเอียดข้อกำหนดตามแนวทางของสำนักงาน ก.ล.ต. (SEC)", 'SEC_Cybersecurity_Service_Mapping.csv')
-            
-    else:
-        st.error("Could not determine a valid, mapped sector from any method to provide recommendations.")
+        st.markdown("---")
 
+        final_sectors = set()
+        if static_sector and static_sector in SECTOR_DETAILS:
+            final_sectors.add(static_sector)
+        if ai_sector and ai_sector in SECTOR_DETAILS:
+            final_sectors.add(ai_sector)
+
+        if final_sectors:
+            display_unified_recommendations(list(final_sectors))
+            
+            st.markdown("---")
+            st.markdown("## ภาคผนวก: ข้อกำหนดเฉพาะหน่วยงานกำกับดูแล (Appendix)")
+            
+            is_gov_related = any(s in ["Critical Infrastructure (CII)", "Government / SOE", "Regulator"] for s in final_sectors)
+            if is_gov_related:
+                df_law = load_csv_data('Cybersecurity_Law-Service_Mapping_Table.csv')
+                display_compliance_table(df_law, "📑 รายละเอียดข้อกำหนดตาม พ.ร.บ. ไซเบอร์ฯ", 'Cybersecurity_Law-Service_Mapping_Table.csv')
+
+            if "Banking / Finance / Insurance (BFSI)" in final_sectors:
+                org_name_lower = st.session_state.org_to_classify.lower()
+                
+                if any(keyword in org_name_lower for keyword in BANKING_KEYWORDS):
+                    df_bot = load_csv_data('BOT_Cybersecurity_Compliance_Mapping.csv')
+                    display_compliance_table(df_bot, "🏦 รายละเอียดข้อกำหนดตามแนวทางของธนาคารแห่งประเทศไทย (BOT)", 'BOT_Cybersecurity_Compliance_Mapping.csv')
+                
+                if any(keyword in org_name_lower for keyword in INSURANCE_KEYWORDS):
+                    df_oic = load_csv_data('OIC_Cybersecurity_Service_Mapping.csv')
+                    display_compliance_table(df_oic, "🛡️ รายละเอียดข้อกำหนดตามแนวทางของสำนักงาน คปภ. (OIC)", 'OIC_Cybersecurity_Service_Mapping.csv')
+                
+                if any(keyword in org_name_lower for keyword in SEC_KEYWORDS):
+                    df_sec = load_csv_data('SEC_Cybersecurity_Service_Mapping.csv')
+                    display_compliance_table(df_sec, "📈 รายละเอียดข้อกำหนดตามแนวทางของสำนักงาน ก.ล.ต. (SEC)", 'SEC_Cybersecurity_Service_Mapping.csv')
+                
+        else:
+            st.error("Could not determine a valid, mapped sector from any method to provide recommendations.")
+
+# --- Run the App ---
+if st.session_state["authenticated"]:
+    main_app()
